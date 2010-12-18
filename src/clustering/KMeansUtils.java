@@ -40,22 +40,40 @@ final class KMeansUtils {
     }
 
 
+    /**
+     * Creates an @link{ImageStack} object that encode the original image withe
+     * the centroid components.
+     * Calls @link{closestCluster(final float[] x, final float[][] clusterCenters)}.
+     *
+     * @param clusterCenters the matrix containing the centroids values
+     * @param vp the @link{VectorProcessor} representing the image
+     * @return an @link{ImageStacek} encoded object
+     */
     public static ImageStack encodeCentroidValueImage(final float[][] clusterCenters, final VectorProcessor vp) {
+        
         final int width = vp.getWidth();
         final int height = vp.getHeight();
         final int numberOfValues = vp.getNumberOfValues();
         final ImageStack s = new ImageStack(width, height);
-        for (int i = 0; i < numberOfValues; ++i) {
+
+        /* Adds a FloatProcessor for each component */
+        for (int i = 0; i < numberOfValues; ++i)
+        {
             // TODO: Band label should be the same as in the input stack
             s.addSlice("Band i", new FloatProcessor(width, height));
         }
 
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
         final Object[] pixels = s.getImageArray();
-        while (iterator.hasNext()) {
+        
+        /* For each pixel */
+        while (iterator.hasNext())
+        {
             final float[] v = iterator.next();
+            /* Get the closest Cluster */
             final int c = closestCluster(v, clusterCenters);
-            for (int j = 0; j < numberOfValues; ++j) {
+            for (int j = 0; j < numberOfValues; ++j)
+            {
                 ((float[]) pixels[j])[iterator.getOffset()] = clusterCenters[c][j];
             }
         }
@@ -67,17 +85,21 @@ final class KMeansUtils {
     /**
      * Return index of the closest cluster to point <code>x</code>.
      *
-     * @param x              point coordinates.
-     * @param clusterCenters cluster centers.
+     * @param x              point features.
+     * @param clusterCenters cluster centers features.
      * @return index of the closest cluster
      */
     static int closestCluster(final float[] x, final float[][] clusterCenters) {
+
         double minDistance = Double.MAX_VALUE;
         int closestCluster = -1;
-        for (int i = 0; i < clusterCenters.length; i++) {
+
+        for (int i = 0; i < clusterCenters.length; i++)
+        {
             final float[] clusterCenter = clusterCenters[i];
             final double d = distance(clusterCenter, x);
-            if (d < minDistance) {
+            if (d < minDistance)
+            {
                 minDistance = d;
                 closestCluster = i;
             }
@@ -89,7 +111,7 @@ final class KMeansUtils {
 
     /**
      * Distance between points <code>a</code> and <code>b</code>.
-     *
+     * This is the squared rooted version
      * @param a first point.
      * @param b second point.
      * @return distance.
@@ -104,14 +126,26 @@ final class KMeansUtils {
     }
 
 
+    /**
+     * Creates an @link{ImagePlus} object that represents the already encoded
+     * @link{ImageStack} with the centroid values
+     * @param originalImageType the type of the original Image
+     * @param centroidValueStack the @link{ImageStack} with the centroid values applied to the pixels
+     * @return
+     */
     static ImagePlus createCentroidImage(final int originalImageType, final ImageStack centroidValueStack) {
         final boolean doScaling = ImageConverter.getDoScaling();
-        try {
+        try
+        {
             ImageConverter.setDoScaling(false);
             final ImagePlus cvImp = new ImagePlus("Cluster centroid values", centroidValueStack);
-            if (centroidValueStack.getSize() > 1) {
+
+            if (centroidValueStack.getSize() > 1)
+            {
                 final StackConverter stackConverter = new StackConverter(cvImp);
-                switch (originalImageType) {
+
+                switch (originalImageType)
+                {
                     case ImagePlus.COLOR_RGB:
                         stackConverter.convertToGray8();
                         final ImageConverter imageConverter = new ImageConverter(cvImp);
@@ -129,10 +163,13 @@ final class KMeansUtils {
                     default:
                         throw new IllegalArgumentException("Unsupported input image type: " + originalImageType);
                 }
-            } else {
+            } 
+            else
+            {
                 final ImageConverter converter = new ImageConverter(cvImp);
                 // Convert image back to original type
-                switch (originalImageType) {
+                switch (originalImageType)
+                {
                     case ImagePlus.COLOR_RGB:
                         throw new IllegalArgumentException("Internal error: RGB image cannot have a single band.");
                     case ImagePlus.GRAY8:
@@ -150,7 +187,9 @@ final class KMeansUtils {
             }
 
             return cvImp;
-        } finally {
+        } 
+        finally
+        {
             ImageConverter.setDoScaling(doScaling);
         }
 
