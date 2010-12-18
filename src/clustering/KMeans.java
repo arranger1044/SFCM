@@ -74,7 +74,7 @@ public final class KMeans {
             throw new IllegalArgumentException("Input stack cannot be empty");
         }
 
-        vp = new VectorProcessor(stack); /// METTE NEL VETTORE TUTTI I PIXEL DELL'IMMAGINE.
+        vp = new VectorProcessor(stack);
 
         // TODO: add support for using ROI. ROI of the first slice is applied to all slices.
 //    Rectangle roi = stack.getProcessor(1).getRoi();
