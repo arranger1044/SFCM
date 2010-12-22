@@ -21,7 +21,7 @@
  */
 package clustering;
 
-import clustering.KMeans;
+import clustering.old.kmeans.KMeans;
 import ij.ImagePlus;
 import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
