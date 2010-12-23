@@ -79,45 +79,14 @@ public class KMeansPlugin implements PlugIn{
         /* Configuring the KMeansManager */
         getConfigurationFromDialog(configDialog, KMM);
 
-        /* Calling the clustering algorithm and keeping the time */
-        final long startTime = System.currentTimeMillis();
-        //ImageProcessor[] imgArray = KMM.run(imp);
+        /* Calling the clustering algorithm */
         ImageStack[] imgArray = KMM.run(imp);
-        final long endTime = System.currentTimeMillis();
-
-        // Apply default color map
-//        if (APPLY_LUT)
-//        {
-//        //    bp.setColorModel(defaultColorModel());
-//        }
-//        if (AUTO_BRIGHTNESS)
-//        {
-//            for (int i = 0; i < imgArray.length; i++)
-//            {
-//                imgArray[i].setMinAndMax(0, KMM.getNumberOfClusters());
-//            }
-//        }
 
         /* Show result images */
         String type = null;
         for (int i = 0; i < imgArray.length; i++)
         {
             ImagePlus r = null;
-
-//            if (imgArray[i] instanceof ByteProcessor)
-//            {
-//                type = "in Gray Scale";
-//                System.out.println(((ByteProcessor)imgArray[i]).getPixel(4, 33));
-//                r = new ImagePlus("Clusters " + type, (ByteProcessor)imgArray[i]);
-//            }
-//            else if (imgArray[i] instanceof ColorProcessor)
-//            {
-//                type = "in random RGB Colors";
-//                System.out.println(((ColorProcessor)imgArray[i]).getColor(4, 33));
-//                imgArray[i].convertToRGB();
-//                System.out.println(((ColorProcessor)imgArray[i]).getColor(4, 33));
-//                r = new ImagePlus("Clusters " + type, (ColorProcessor)imgArray[i]);
-//            }
 
             System.out.println(i + "len " + imgArray.length + " " + imgArray[i].getSize());
             ImageProcessor IP = imgArray[i].getProcessor(1);
@@ -131,20 +100,22 @@ public class KMeansPlugin implements PlugIn{
             }
             else if (IP.getClass() == ij.process.FloatProcessor.class)
             {
-                final boolean doScaling = ImageConverter.getDoScaling();
-                try
-                {
-                    ImageConverter.setDoScaling(false);
-                    r = new ImagePlus("Clusters", imgArray[i]);
-                    final StackConverter stackConverter = new StackConverter(r);
-                    stackConverter.convertToGray8();
-                    final ImageConverter imageConverter = new ImageConverter(r);
-                    imageConverter.convertRGBStackToRGB();
-                }
-                finally
-                {
-                    ImageConverter.setDoScaling(doScaling);
-                }
+//                final boolean doScaling = ImageConverter.getDoScaling();
+//                try
+//                {
+//                    ImageConverter.setDoScaling(false);
+//                    r = new ImagePlus("Clusters", imgArray[i]);
+//                    final StackConverter stackConverter = new StackConverter(r);
+//                    stackConverter.convertToGray8();
+//                    final ImageConverter imageConverter = new ImageConverter(r);
+//                    imageConverter.convertRGBStackToRGB();
+//
+//                }
+//                finally
+//                {
+//                    ImageConverter.setDoScaling(doScaling);
+//                }
+                r = encodeRGBImageFromStack(imp.getType(), imgArray[i]);
 
             }
             else
@@ -156,9 +127,6 @@ public class KMeansPlugin implements PlugIn{
             
             r.show();
         }
-
-        IJ.showStatus("Clustering completed in " + (endTime - startTime) + " ms.");
-
     }
 
     private boolean validateImage(ImagePlus img){
@@ -181,7 +149,10 @@ public class KMeansPlugin implements PlugIn{
         dialog.addNumericField("Cluster_center_tolerance", KMM.getTolerance(), 8);
         dialog.addCheckbox("Enable_randomization_seed", KMM.isRandomizationSeedEnabled());
         dialog.addNumericField("Randomization_seed", KMM.getRandomizationSeed(), 0);
-        dialog.addCheckbox("Show_clusters_as_centroid_value", showCentroidImage);
+        dialog.addCheckbox("Show_clusters_as_centroid_value", KMM.getClusterCenterColorsVisualization());
+        dialog.addCheckbox("Show_clusters_as_random_RGB", KMM.getRandomRGBVisualization());
+        dialog.addCheckbox("Show_clusters_as_gray_levels", KMM.getGrayScaleVisualization());
+        dialog.addCheckbox("Show_clusters_as_binary_stack", KMM.getBinaryStackVisualization());
         return dialog;
     }
 
@@ -190,14 +161,78 @@ public class KMeansPlugin implements PlugIn{
         KMM.setTolerance((float) dialog.getNextNumber());
         KMM.setRandomizationSeedEnabled(dialog.getNextBoolean());
         KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
-        showCentroidImage = dialog.getNextBoolean();
-
+        KMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());
+        KMM.setRandomRGBVisualization(dialog.getNextBoolean());
+        KMM.setGrayScaleVisualization(dialog.getNextBoolean());
+        KMM.setBinaryStackVisualization(dialog.getNextBoolean());
     }
 
     private void adjustBrightness(ImageProcessor IP, int nClusters){
         if (AUTO_BRIGHTNESS)
         {
             IP.setMinAndMax(0, nClusters);
+        }
+    }
+
+    private ImagePlus encodeRGBImageFromStack(final int originalImageType, final ImageStack centroidValueStack){
+
+        final boolean doScaling = ImageConverter.getDoScaling();
+        try
+        {
+            ImageConverter.setDoScaling(false);
+            final ImagePlus cvImp = new ImagePlus("Cluster centroid values", centroidValueStack);
+
+            if (centroidValueStack.getSize() > 1)
+            {
+                final StackConverter stackConverter = new StackConverter(cvImp);
+
+                switch (originalImageType)
+                {
+                    case ImagePlus.COLOR_RGB:
+                        stackConverter.convertToGray8();
+                        final ImageConverter imageConverter = new ImageConverter(cvImp);
+                        imageConverter.convertRGBStackToRGB();
+                        break;
+                    case ImagePlus.GRAY8:
+                        stackConverter.convertToGray8();
+                        break;
+                    case ImagePlus.GRAY16:
+                        stackConverter.convertToGray16();
+                        break;
+                    case ImagePlus.GRAY32:
+                        // No action needed
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported input image type: " + originalImageType);
+                }
+            }
+            else
+            {
+                final ImageConverter converter = new ImageConverter(cvImp);
+                // Convert image back to original type
+                switch (originalImageType)
+                {
+                    case ImagePlus.COLOR_RGB:
+                        throw new IllegalArgumentException("Internal error: RGB image cannot have a single band.");
+                    case ImagePlus.GRAY8:
+                        converter.convertToGray8();
+                        break;
+                    case ImagePlus.GRAY16:
+                        converter.convertToGray16();
+                        break;
+                    case ImagePlus.GRAY32:
+                        // No action needed
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported input image type: " + originalImageType);
+                }
+            }
+
+            return cvImp;
+        }
+        finally
+        {
+            ImageConverter.setDoScaling(doScaling);
         }
     }
 }

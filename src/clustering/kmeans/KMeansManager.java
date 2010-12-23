@@ -28,14 +28,20 @@ public class KMeansManager {
    private boolean randomizationSeedEnabled = true;
    private double tolerance = 0.0001;
    private int numberOfClusters = 4;
+   private boolean grayScaleVisualization = true;
+   private boolean randomRGBVisualization = false;
+   private boolean binaryStackVisualization = false;
+   private boolean clusterCenterColorsVisualization = false;
+
+
 
    public int getRandomizationSeed() {
         return randomizationSeed;
-    }
+   }
 
-    public void setRandomizationSeed(final int randomizationSeed) {
+   public void setRandomizationSeed(final int randomizationSeed) {
         this.randomizationSeed = randomizationSeed;
-    }
+   }
 
     /**
      * If <code>true</code>, random number generator will be initialized with a
@@ -45,21 +51,21 @@ public class KMeansManager {
      * @return {@code true} when randomization seed is enabled.
      * @see #getRandomizationSeed()
      */
-    public boolean isRandomizationSeedEnabled() {
+   public boolean isRandomizationSeedEnabled() {
         return randomizationSeedEnabled;
-    }
+   }
 
-    public void setRandomizationSeedEnabled(final boolean randomizationSeedEnabled) {
-        this.randomizationSeedEnabled = randomizationSeedEnabled;
-    }
+   public void setRandomizationSeedEnabled(final boolean randomizationSeedEnabled) {
+       this.randomizationSeedEnabled = randomizationSeedEnabled;
+   }
 
-    public int getNumberOfClusters() {
-        return numberOfClusters;
-    }
+   public int getNumberOfClusters() {
+       return numberOfClusters;
+   }
 
-    public void setNumberOfClusters(final int numberOfClusters) {
-        this.numberOfClusters = numberOfClusters;
-    }
+   public void setNumberOfClusters(final int numberOfClusters) {
+       this.numberOfClusters = numberOfClusters;
+   }
 
     /**
      * Return tolerance used to determine cluster centroid distance. This tolerance is used to
@@ -67,13 +73,45 @@ public class KMeansManager {
      *
      * @return cluster centroid location tolerance.
      */
-    public double getTolerance() {
-        return tolerance;
-    }
+   public double getTolerance() {
+       return tolerance;
+   }
 
-    public void setTolerance(final float tolerance) {
-        this.tolerance = tolerance;
-    }
+   public void setTolerance(final float tolerance) {
+       this.tolerance = tolerance;
+   }
+
+   public boolean getGrayScaleVisualization(){
+       return grayScaleVisualization;
+   }
+
+   public void setGrayScaleVisualization(boolean visualization){
+       grayScaleVisualization = visualization;
+   }
+
+   public boolean getRandomRGBVisualization(){
+       return randomRGBVisualization;
+   }
+
+   public void setRandomRGBVisualization(boolean visualization){
+       randomRGBVisualization = visualization;
+   }
+
+   public boolean getBinaryStackVisualization(){
+       return binaryStackVisualization;
+   }
+
+   public void setBinaryStackVisualization(boolean visualization){
+       binaryStackVisualization = visualization;
+   }
+
+   public boolean getClusterCenterColorsVisualization(){
+       return clusterCenterColorsVisualization;
+   }
+
+   public void setClusterCenterColorsVisualization(boolean visualization){
+       clusterCenterColorsVisualization = visualization;
+   }
 
     public ImageStack[] run(ImagePlus img)
     {
@@ -86,27 +124,52 @@ public class KMeansManager {
 
         float [][] imageData = vp.getPixels();
 
+        /* Calling the clustering algorithm */
+        final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance, randomizationSeed);
-
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Clustering completed in " + (endTime - startTime) + " ms.");
+        
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
 
-        imgArray = new ImageStack[4];
+        Object[] stacks = new Object[4];
+        //imgArray = new ImageStack[4];
+        int visualizationModes = 0;
 
-        ImageStack imgsbp = new ImageStack(vp.getWidth(), vp.getHeight());
-        imgsbp.addSlice("GrayScale", encodeClusteredImageInGray(vp, clusterMemberships, clusterCenters));
-        imgArray[0] = imgsbp;
+        if (grayScaleVisualization)
+        {
+            ImageStack imgsbp = new ImageStack(vp.getWidth(), vp.getHeight());
+            imgsbp.addSlice("GrayScale", encodeClusteredImageInGray(vp, clusterMemberships, clusterCenters));
+            stacks[visualizationModes] = imgsbp;
+            visualizationModes++;
+        }
 
-        ImageStack imgsbp2 = new ImageStack(vp.getWidth(), vp.getHeight());
-        imgsbp2.addSlice("RGB", encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed));
-        imgArray[1] = imgsbp2;
+        if (randomRGBVisualization)
+        {
+            ImageStack imgsbp2 = new ImageStack(vp.getWidth(), vp.getHeight());
+            imgsbp2.addSlice("RGB", encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed));
+            stacks[visualizationModes] = imgsbp2;
+            visualizationModes++;
+        }
 
-        imgArray[2] = encodeClusteredImageBinaryStack(vp, clusterMemberships, clusterCenters);
+        if (binaryStackVisualization)
+        {
+            stacks[visualizationModes] = encodeClusteredImageBinaryStack(vp, clusterMemberships, clusterCenters);
+            visualizationModes++;
+        }
 
-        imgArray[3] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, clusterCenters);
-//        System.out.println("GR " + ((ByteProcessor)imgArray[0]).getPixel(4, 33));
-//        imgArray[1] = encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed);
-//        System.out.println("RGC " + ((ColorProcessor)imgArray[1]).getColor(4, 33));
+        if (clusterCenterColorsVisualization)
+        {
+            stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, clusterCenters);
+            visualizationModes++;
+        }
+
+        imgArray = new ImageStack[visualizationModes];
+        for (int i = 0; i < visualizationModes; i++)
+        {
+            imgArray[i] = (ImageStack)stacks[i];
+        }
 
         return imgArray;
     }
@@ -279,7 +342,6 @@ public class KMeansManager {
         {
             // Restore original scaling option
             ImageConverter.setDoScaling(doScaling);
-
         }
     }
 

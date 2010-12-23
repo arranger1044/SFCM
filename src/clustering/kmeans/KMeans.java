@@ -5,7 +5,6 @@
 
 package clustering.kmeans;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -36,7 +35,10 @@ public class KMeans {
                                                             int k,
                                                             int randomSeed){
 
+        //final long startTime = System.currentTimeMillis();
         V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+        //final long endTime = System.currentTimeMillis();
+        //System.out.println(endTime-startTime);
         return V;
     }
 
