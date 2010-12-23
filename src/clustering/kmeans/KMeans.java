@@ -19,7 +19,7 @@ public class KMeans {
     private KMeans(){
     }
 
-    static public Object[] run (float [][] X, int k, double tolerance,
+    public static Object[] run (float [][] X, int k, double tolerance,
                                 int randomSeed){
 
         float [][] V = new float[k][X[0].length];
@@ -162,7 +162,7 @@ public class KMeans {
      * @param clusterCenters cluster centers features.
      * @return index of the closest cluster
      */
-    static int closestCluster(final float[] x, final float[][] clusterCenters, int k) {
+    private static int closestCluster(final float[] x, final float[][] clusterCenters, int k) {
 
         double minDistance = Double.MAX_VALUE;
         int closestCluster = -1;
@@ -189,7 +189,7 @@ public class KMeans {
      * @param b second point.
      * @return distance.
      */
-    static double distance(final float[] a, final float[] b) {
+    private static double distance(final float[] a, final float[] b) {
         double sum = 0;
         for (int i = 0; i < a.length; i++) {
             final double d = a[i] - b[i];
@@ -252,11 +252,11 @@ public class KMeans {
         return resultMatrixes;
     }
 
-    private static Point toPoint(final int offset, final int width) {
-        final int y = offset / width;
-        final int x = offset - y * width;
-        return new Point(x, y);
-    }
+//    private static Point toPoint(final int offset, final int width) {
+//        final int y = offset / width;
+//        final int x = offset - y * width;
+//        return new Point(x, y);
+//    }
 
     private static final class MeanElement {
 

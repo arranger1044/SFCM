@@ -14,6 +14,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.Duplicator;
 import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 import vectorLib.VectorProcessor;
 
@@ -71,9 +72,9 @@ public class KMeansManager {
         this.tolerance = tolerance;
     }
 
-    public ByteProcessor[] run(ImagePlus img)
+    public ImageProcessor[] run(ImagePlus img)
     {
-        ByteProcessor[] bpArray = null;
+        ImageProcessor[] imgArray = null;
 
         final ImagePlus stack = convertToFloatStack(img);
         ImageStack ims = stack.getStack();
@@ -87,11 +88,11 @@ public class KMeansManager {
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
 
-        bpArray = new ByteProcessor[1];
+        imgArray = new ImageProcessor[1];
 
-        bpArray[0] = encodeClusteredImage(vp, clusterMemberships, clusterCenters);
+        imgArray[0] = encodeClusteredImage(vp, clusterMemberships, clusterCenters);
 
-        return bpArray;
+        return imgArray;
     }
 
     private ByteProcessor encodeClusteredImage(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){

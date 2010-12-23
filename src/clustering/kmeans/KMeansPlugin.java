@@ -15,6 +15,7 @@ import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
 import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 
 
 
@@ -78,7 +79,7 @@ public class KMeansPlugin implements PlugIn{
 
         /* Calling the clustering algorithm and keeping the time */
         final long startTime = System.currentTimeMillis();
-        final ByteProcessor[] bpArray = KMM.run(imp);
+        final ImageProcessor[] imgArray = KMM.run(imp);
         final long endTime = System.currentTimeMillis();
 
         // Apply default color map
@@ -88,16 +89,16 @@ public class KMeansPlugin implements PlugIn{
         }
         if (AUTO_BRIGHTNESS)
         {
-            for (int i = 0; i < bpArray.length; i++)
+            for (int i = 0; i < imgArray.length; i++)
             {
-                bpArray[i].setMinAndMax(0, KMM.getNumberOfClusters());
+                imgArray[i].setMinAndMax(0, KMM.getNumberOfClusters());
             }
         }
 
         /* Show result images */
-        for (int i = 0; i < bpArray.length; i++)
+        for (int i = 0; i < imgArray.length; i++)
         {
-            final ImagePlus r = new ImagePlus("Clusters", bpArray[i]);
+            final ImagePlus r = new ImagePlus("Clusters", imgArray[i]);
             r.show();
         }
 
