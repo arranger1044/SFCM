@@ -13,9 +13,12 @@ import ij.process.ByteProcessor;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.Duplicator;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import ij.process.StackConverter;
+import util.ColorManager;
 import vectorLib.VectorProcessor;
 
 
@@ -72,9 +75,9 @@ public class KMeansManager {
         this.tolerance = tolerance;
     }
 
-    public ImageProcessor[] run(ImagePlus img)
+    public ImageStack[] run(ImagePlus img)
     {
-        ImageProcessor[] imgArray = null;
+        ImageStack[] imgArray = null;
 
         final ImagePlus stack = convertToFloatStack(img);
         ImageStack ims = stack.getStack();
@@ -88,14 +91,29 @@ public class KMeansManager {
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
 
-        imgArray = new ImageProcessor[1];
+        imgArray = new ImageStack[4];
 
-        imgArray[0] = encodeClusteredImage(vp, clusterMemberships, clusterCenters);
+        ImageStack imgsbp = new ImageStack(vp.getWidth(), vp.getHeight());
+        imgsbp.addSlice("GrayScale", encodeClusteredImageInGray(vp, clusterMemberships, clusterCenters));
+        imgArray[0] = imgsbp;
+
+        ImageStack imgsbp2 = new ImageStack(vp.getWidth(), vp.getHeight());
+        imgsbp2.addSlice("RGB", encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed));
+        imgArray[1] = imgsbp2;
+
+        imgArray[2] = encodeClusteredImageBinaryStack(vp, clusterMemberships, clusterCenters);
+
+        imgArray[3] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, clusterCenters);
+//        System.out.println("GR " + ((ByteProcessor)imgArray[0]).getPixel(4, 33));
+//        imgArray[1] = encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed);
+//        System.out.println("RGC " + ((ColorProcessor)imgArray[1]).getColor(4, 33));
 
         return imgArray;
     }
 
-    private ByteProcessor encodeClusteredImage(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+
+
+    private ByteProcessor encodeClusteredImageInGray(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
 
         final ByteProcessor dest = new ByteProcessor(vp.getWidth(), vp.getHeight());
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
@@ -113,6 +131,108 @@ public class KMeansManager {
         }
         return dest;
     }
+
+   private ImageStack encodeClusteredImageBinaryStack(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+
+        final ImageStack dest = new ImageStack(vp.getWidth(), vp.getHeight());
+        final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
+        final int nClusters = clusterCenters.length;
+
+        ByteProcessor[] binaryClusters = new ByteProcessor[nClusters];
+        for (int i = 0; i < nClusters; i++)
+        {
+            binaryClusters[i] = new ByteProcessor(vp.getWidth(), vp.getHeight());
+        }
+
+        while (iterator.hasNext())
+        {
+            final float[] v = iterator.next();
+            for (int j = 0; j < nClusters; j++)
+            {
+                if (clusterMemberships[iterator.getOffset()][j] == 1)
+                {
+                    binaryClusters[j].putPixel(iterator.getX(), iterator.getY(), 0);
+                }
+                else
+                {
+                    binaryClusters[j].putPixel(iterator.getX(), iterator.getY(), 255);
+                }
+            }
+        }
+        
+        for (int i = 0; i < nClusters; i++)
+        {
+            dest.addSlice("", binaryClusters[i]);
+        }
+
+        return dest;
+    }
+
+    private ColorProcessor encodeClusteredImageInRGB(VectorProcessor vp, int [][] clusterMemberships,
+                                                     float [][] clusterCenters, int [] mixingColor,
+                                                     int randomizationSeed){
+
+        final ColorProcessor dest = new ColorProcessor(vp.getWidth(), vp.getHeight());
+        final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
+        final int nClusters = clusterCenters.length;
+
+        /* Creating an array of random RGB colors, one for each cluster */
+        int [][] clusterColors = new int [nClusters][4];
+        for (int i = 0; i < nClusters; i++)
+        {
+            clusterColors[i] = ColorManager.randomMixedRGBColor(mixingColor);
+            System.out.println("C" + i + " " + clusterColors[i][0] + " " + clusterColors[i][1] + " " + clusterColors[i][2]);
+        }
+
+        while (iterator.hasNext())
+        {
+            final float[] v = iterator.next();
+            for (int j = 0; j < nClusters; j++)
+            {
+                if (clusterMemberships[iterator.getOffset()][j] == 1)
+                {
+                    //System.out.println("C" + j + " " + clusterColors[j][0] + " " + clusterColors[j][1] + " " + clusterColors[j][2]);
+                    dest.putPixel(iterator.getX(), iterator.getY(), clusterColors[j]);
+                    //dest.putPixel(iterator.getX(), iterator.getY(), clusterColors[j][0]*clusterColors[j][1]*clusterColors[j][2]);
+                }
+            }
+        }
+
+        System.out.println(dest.getColor(4, 33));
+        return dest;
+    }
+
+    private ImageStack encodeClusteredImageWithClusterCenterColors(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+
+        final ImageStack dest = new ImageStack(vp.getWidth(), vp.getHeight());
+        final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
+        final int nClusters = clusterCenters.length;
+
+        for (int i = 0; i < vp.getNumberOfValues(); i++)
+        {
+            dest.addSlice("Band i", new FloatProcessor(vp.getWidth(), vp.getHeight()));
+        }
+
+        final Object[] pixels = dest.getImageArray();
+
+        while (iterator.hasNext())
+        {
+            final float[] v = iterator.next();
+            for (int j = 0; j < nClusters; j++)
+            {
+                if (clusterMemberships[iterator.getOffset()][j] == 1)
+                {
+                    for (int k = 0; k < vp.getNumberOfValues(); k++)
+                    {
+                        ((float[]) pixels[k])[iterator.getOffset()] = clusterCenters[j][k];
+                    }
+                }
+            }
+        }
+
+        return dest;
+    }
+
     /**
      * Convert image to a stack of FloatProcessors.
      *

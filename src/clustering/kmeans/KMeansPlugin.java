@@ -12,10 +12,12 @@ package clustering.kmeans;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
-import ij.process.ByteProcessor;
+import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
+import ij.process.StackConverter;
 
 
 
@@ -79,26 +81,79 @@ public class KMeansPlugin implements PlugIn{
 
         /* Calling the clustering algorithm and keeping the time */
         final long startTime = System.currentTimeMillis();
-        final ImageProcessor[] imgArray = KMM.run(imp);
+        //ImageProcessor[] imgArray = KMM.run(imp);
+        ImageStack[] imgArray = KMM.run(imp);
         final long endTime = System.currentTimeMillis();
 
         // Apply default color map
-        if (APPLY_LUT)
-        {
-        //    bp.setColorModel(defaultColorModel());
-        }
-        if (AUTO_BRIGHTNESS)
-        {
-            for (int i = 0; i < imgArray.length; i++)
-            {
-                imgArray[i].setMinAndMax(0, KMM.getNumberOfClusters());
-            }
-        }
+//        if (APPLY_LUT)
+//        {
+//        //    bp.setColorModel(defaultColorModel());
+//        }
+//        if (AUTO_BRIGHTNESS)
+//        {
+//            for (int i = 0; i < imgArray.length; i++)
+//            {
+//                imgArray[i].setMinAndMax(0, KMM.getNumberOfClusters());
+//            }
+//        }
 
         /* Show result images */
+        String type = null;
         for (int i = 0; i < imgArray.length; i++)
         {
-            final ImagePlus r = new ImagePlus("Clusters", imgArray[i]);
+            ImagePlus r = null;
+
+//            if (imgArray[i] instanceof ByteProcessor)
+//            {
+//                type = "in Gray Scale";
+//                System.out.println(((ByteProcessor)imgArray[i]).getPixel(4, 33));
+//                r = new ImagePlus("Clusters " + type, (ByteProcessor)imgArray[i]);
+//            }
+//            else if (imgArray[i] instanceof ColorProcessor)
+//            {
+//                type = "in random RGB Colors";
+//                System.out.println(((ColorProcessor)imgArray[i]).getColor(4, 33));
+//                imgArray[i].convertToRGB();
+//                System.out.println(((ColorProcessor)imgArray[i]).getColor(4, 33));
+//                r = new ImagePlus("Clusters " + type, (ColorProcessor)imgArray[i]);
+//            }
+
+            System.out.println(i + "len " + imgArray.length + " " + imgArray[i].getSize());
+            ImageProcessor IP = imgArray[i].getProcessor(1);
+            int slices = imgArray[i].getSize();
+            System.out.println("class " + IP.getClass());
+            if (IP.getClass() == ij.process.ByteProcessor.class && slices == 1)
+            {
+                System.out.println("Entrato");
+                adjustBrightness(IP, KMM.getNumberOfClusters());
+                r = new ImagePlus("Clusters in Gray Scale", IP);
+            }
+            else if (IP.getClass() == ij.process.FloatProcessor.class)
+            {
+                final boolean doScaling = ImageConverter.getDoScaling();
+                try
+                {
+                    ImageConverter.setDoScaling(false);
+                    r = new ImagePlus("Clusters", imgArray[i]);
+                    final StackConverter stackConverter = new StackConverter(r);
+                    stackConverter.convertToGray8();
+                    final ImageConverter imageConverter = new ImageConverter(r);
+                    imageConverter.convertRGBStackToRGB();
+                }
+                finally
+                {
+                    ImageConverter.setDoScaling(doScaling);
+                }
+
+            }
+            else
+            {
+                r = new ImagePlus("Clusters", imgArray[i]);
+            }
+            
+            //System.out.println(type);
+            
             r.show();
         }
 
@@ -137,6 +192,13 @@ public class KMeansPlugin implements PlugIn{
         KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
         showCentroidImage = dialog.getNextBoolean();
 
+    }
+
+    private void adjustBrightness(ImageProcessor IP, int nClusters){
+        if (AUTO_BRIGHTNESS)
+        {
+            IP.setMinAndMax(0, nClusters);
+        }
     }
 }
 
