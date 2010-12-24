@@ -5,8 +5,7 @@
 
 package clustering.kmeans;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Random;
 
 /**
@@ -19,12 +18,12 @@ public class KMeans {
     }
 
     public static Object[] run (float [][] X, int k, double tolerance,
-                                int randomSeed){
+                                int randomSeed, int initMode){
 
         float [][] V = new float[k][X[0].length];
         int [][] U = new int [X.length][k];
 
-        V = initializeClusterCenterMatrix(X, V, k, randomSeed);
+        V = initializeClusterCenterMatrix(X, V, k, randomSeed, initMode);
         U = computeClusterMembership(X, U, V, k);
 
         return clusterize(X, U, V, k, tolerance);
@@ -33,28 +32,65 @@ public class KMeans {
     private static float [][] initializeClusterCenterMatrix(float [][] X,
                                                             float [][] V,
                                                             int k,
-                                                            int randomSeed){
+                                                            int randomSeed,
+                                                            int initMode){
 
-        //final long startTime = System.currentTimeMillis();
-        V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
-        //final long endTime = System.currentTimeMillis();
-        //System.out.println(endTime-startTime);
+        final long startTime = System.currentTimeMillis();
+
+        switch(initMode)
+        {
+            case 0:
+                V = randomInitialization(X, V, k, randomSeed);
+                System.out.println("Random");
+                break;
+            case 1:
+                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                System.out.println("K-Means++");
+                break;
+            default:
+                break;
+        }
+
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Initialization done in " + (endTime - startTime) + "ms");
+        
         return V;
     }
 
-    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
-        final Random random = createRandom(randomSeed);
+    private static float[][] randomInitialization(float [][] X, float [][] V, int k, int randomSeed) {
 
-        //final int nbClusters = config.getNumberOfClusters();
-//        final int width = vp.getWidth();
-//        final int height = vp.getHeight();
-//        final int nbPixels = width * height;
+        final Random random = createRandom(randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
-//        // Cluster centers
-//        final List<float[]> centers = new ArrayList<float[]>();
+
+        final HashSet<Integer> centerLocations = new HashSet<Integer>();
+        int clusterCreated = 0;
+
+        while (clusterCreated < k)
+        {
+            final int clusterCandidate = random.nextInt(nbPixels);
+
+            /* Check if it has already been extracted */
+            if (!centerLocations.contains(clusterCandidate))
+            {
+                /* Let's copy the pixel values in the centroid matrix */
+                System.arraycopy(X[clusterCandidate], 0, V[clusterCreated], 0, nFeatures);
+                centerLocations.add(clusterCandidate);
+                clusterCreated++;
+            }
+        }
+        return V;
+     }
+
+    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+
+        final Random random = createRandom(randomSeed);
+        final int nbPixels = X.length;
+        final int nFeatures = X[0].length;
+
         // Location of pixels used as cluster centers
-        final List<Integer> centerLocation = new ArrayList<Integer>(); // contiene i centri già calcolati
+        //final List<Integer> centerLocation = new ArrayList<Integer>();
+        final HashSet<Integer> centerLocation = new HashSet<Integer>();
         int clusterCreated = 0;
         // Choose one center uniformly at random from among pixels
         {
@@ -77,13 +113,7 @@ public class KMeans {
             double sum = 0;
             //final float[][] centersArray = centers.toArray(new float[centers.size()][]);
             for (int offset = 0; offset < nbPixels; offset++) {  
-                                                                 
-                //final Point p = toPoint(offset, width);
 
-                // Test that this is not a repeat of already selected center 
-//                if (centerLocation.contains(p)) {
-//                    continue;
-//                }
                 if (centerLocation.contains(offset)) {
                     continue;
                 }

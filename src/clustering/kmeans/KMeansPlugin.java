@@ -147,7 +147,9 @@ public class KMeansPlugin implements PlugIn{
         
         dialog.addNumericField("Number_of_clusters", KMM.getNumberOfClusters(), 0);
         dialog.addNumericField("Cluster_center_tolerance", KMM.getTolerance(), 8);
-        dialog.addCheckbox("Enable_randomization_seed", KMM.isRandomizationSeedEnabled());
+        dialog.addChoice("Initialization Mode", KMM.getInitModes(), KMM.getInizializationMode());
+//        dialog.addCheckbox("Random_clusters_initialization", KMM.getRandomInitialization());
+//        dialog.addCheckbox("KMeans++_clusters_initialization", KMM.getKMeansPlusPlusInitialization());
         dialog.addNumericField("Randomization_seed", KMM.getRandomizationSeed(), 0);
         dialog.addCheckbox("Show_clusters_as_centroid_value", KMM.getClusterCenterColorsVisualization());
         dialog.addCheckbox("Show_clusters_as_random_RGB", KMM.getRandomRGBVisualization());
@@ -159,7 +161,9 @@ public class KMeansPlugin implements PlugIn{
     private void getConfigurationFromDialog(GenericDialog dialog, KMeansManager KMM){
         KMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
         KMM.setTolerance((float) dialog.getNextNumber());
-        KMM.setRandomizationSeedEnabled(dialog.getNextBoolean());
+        KMM.setInitializationMode(dialog.getNextChoice());
+//        KMM.setRandomInitialization(dialog.getNextBoolean());
+//        KMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
         KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
         KMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());
         KMM.setRandomRGBVisualization(dialog.getNextBoolean());

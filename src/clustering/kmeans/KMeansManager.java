@@ -25,15 +25,14 @@ import vectorLib.VectorProcessor;
 public class KMeansManager {
 
    private int randomizationSeed = 48;
-   private boolean randomizationSeedEnabled = true;
    private double tolerance = 0.0001;
    private int numberOfClusters = 4;
    private boolean grayScaleVisualization = true;
    private boolean randomRGBVisualization = false;
    private boolean binaryStackVisualization = false;
    private boolean clusterCenterColorsVisualization = false;
-
-
+   private static final String[] initModes = {"random (Forgy)", "K-Means++"};
+   private String initializationMode = "K-Means++";
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -42,23 +41,7 @@ public class KMeansManager {
    public void setRandomizationSeed(final int randomizationSeed) {
         this.randomizationSeed = randomizationSeed;
    }
-
-    /**
-     * If <code>true</code>, random number generator will be initialized with a
-     * <code>randomizationSeed</code>. If <code>false</code> random number generator will be
-     * initialized using 'current' time.
-     *
-     * @return {@code true} when randomization seed is enabled.
-     * @see #getRandomizationSeed()
-     */
-   public boolean isRandomizationSeedEnabled() {
-        return randomizationSeedEnabled;
-   }
-
-   public void setRandomizationSeedEnabled(final boolean randomizationSeedEnabled) {
-       this.randomizationSeedEnabled = randomizationSeedEnabled;
-   }
-
+   
    public int getNumberOfClusters() {
        return numberOfClusters;
    }
@@ -113,7 +96,19 @@ public class KMeansManager {
        clusterCenterColorsVisualization = visualization;
    }
 
-    public ImageStack[] run(ImagePlus img)
+   public String getInizializationMode(){
+       return initializationMode;
+   }
+
+   public void setInitializationMode(String initMode){
+       initializationMode = initMode;
+   }
+
+   public String[] getInitModes(){
+       return initModes;
+   }
+
+   public ImageStack[] run(ImagePlus img)
     {
         ImageStack[] imgArray = null;
 
@@ -124,9 +119,12 @@ public class KMeansManager {
 
         float [][] imageData = vp.getPixels();
 
+        int initializationMode = getInitializationMode();
+        
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
-        Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance, randomizationSeed);
+        Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance,
+                                             randomizationSeed, initializationMode);
         final long endTime = System.currentTimeMillis();
         System.out.println("Clustering completed in " + (endTime - startTime) + " ms.");
         
@@ -175,6 +173,23 @@ public class KMeansManager {
     }
 
 
+    private int getInitializationMode(){
+
+        int initMode = -1;
+
+        for (int i = 0; i < initModes.length; i++)
+        {
+            if (initializationMode.equals(initModes[i]))
+            {
+                initMode = i;
+            }
+        }
+
+        if (initMode == -1){
+            throw new IllegalArgumentException("Invalid Initialization Mode");
+        }
+        return initMode;
+    }
 
     private ByteProcessor encodeClusteredImageInGray(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
 
