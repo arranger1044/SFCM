@@ -19,6 +19,7 @@ import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 import util.ColorManager;
+import util.ColorSpaceConversion;
 import vectorLib.VectorProcessor;
 
 
@@ -33,6 +34,9 @@ public class KMeansManager {
    private boolean clusterCenterColorsVisualization = false;
    private static final String[] initModes = {"random (Forgy)", "K-Means++"};
    private String initializationMode = "K-Means++";
+   private static final String[] colorSpaces = {"None", "XYZ", "L*a*b*", "HSB"};
+   private String colorSpace = "None";
+   private int imageType;
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -108,23 +112,39 @@ public class KMeansManager {
        return initModes;
    }
 
+   public String[] getColorSpaces(){
+       return colorSpaces;
+   }
+
+   public String getColorSpace(){
+       return colorSpace;
+   }
+
+   public void setColorSpace(String space){
+       colorSpace = space;
+   }
+
    public ImageStack[] run(ImagePlus img)
     {
         ImageStack[] imgArray = null;
+        imageType = img.getType();
 
-        final ImagePlus stack = convertToFloatStack(img);
-        ImageStack ims = stack.getStack();
+//        final ImagePlus stack = convertToFloatStack(img);
+//        ImageStack ims = stack.getStack();
+//
+//        System.out.println("Stack slices "+ ims.getSize());
+//        VectorProcessor vp = new VectorProcessor(ims);
 
-        VectorProcessor vp = new VectorProcessor(ims);
+        VectorProcessor vp = convertToColorSpace(img, colorSpace);
 
         float [][] imageData = vp.getPixels();
 
-        int initializationMode = getInitializationMode();
+        int initMode = computeInitializationMode();
         
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance,
-                                             randomizationSeed, initializationMode);
+                                             randomizationSeed, initMode);
         final long endTime = System.currentTimeMillis();
         System.out.println("Clustering completed in " + (endTime - startTime) + " ms.");
         
@@ -159,7 +179,8 @@ public class KMeansManager {
 
         if (clusterCenterColorsVisualization)
         {
-            stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, clusterCenters);
+            float [][] computedClusterCenters = convertMatrixColorSpace(clusterCenters, colorSpace);
+            stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, computedClusterCenters);
             visualizationModes++;
         }
 
@@ -172,8 +193,60 @@ public class KMeansManager {
         return imgArray;
     }
 
+   
+   private VectorProcessor convertToColorSpace(ImagePlus imp, String colorSpace){
 
-    private int getInitializationMode(){
+       VectorProcessor vp = null;
+
+       if (colorSpace.equals("XYZ"))
+       {
+            vp = ColorSpaceConversion.rgbToXYZVectorProcessor((ColorProcessor)imp.getProcessor());
+       }
+       else if (colorSpace.equals("L*a*b*"))
+       {
+            vp = ColorSpaceConversion.rgbToLabVectorProcessor((ColorProcessor)imp.getProcessor());
+       }
+       else if (colorSpace.equals("HSB"))
+       {
+//            final ImagePlus stack = convertToHSBFloatStack(imp);
+//           ColorProcessor cp = (ColorProcessor)imp.getProcessor();
+//
+//           ImageStack ims = cp.getHSBStack();
+//           final ImagePlus stack = convertToHSBFloatStack(imp);
+//            ImageStack imss = stack.getStack();
+//           //ImageStack stack = convertToHSBFloatStack(ims);
+//            vp = new VectorProcessor(imss);
+            final ImagePlus stack = convertToHSBFloatStack(imp);
+            ImageStack ims = stack.getStack();
+            System.out.println("Stack slices "+ ims.getSize());
+            vp = new VectorProcessor(ims);
+            float [] hsb = vp.get(3, 44);
+
+            System.out.println("HS "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
+       }
+//       else if (colorSpace.equals("YCrCb"))
+//       {
+//            final ByteProcessor[] bps = ColorSpaceConversion.rgbToYCbCr((ColorProcessor)imp.getProcessor());
+//            final ImageStack stack = new ImageStack(imp.getWidth(), imp.getHeight());
+//            stack.addSlice("Y", bps[0]);
+//            stack.addSlice("Cb", bps[1]);
+//            stack.addSlice("Cr", bps[2]);
+//            vp = new VectorProcessor(stack);
+//       }
+       else // if (colorSpace.equals("None"))
+       {
+            final ImagePlus stack = convertToFloatStack(imp);
+            ImageStack ims = stack.getStack();
+
+            System.out.println("Stack slices "+ ims.getSize());
+            vp = new VectorProcessor(ims);
+       }
+
+       return vp;
+   }
+
+
+    private int computeInitializationMode(){
 
         int initMode = -1;
 
@@ -311,6 +384,33 @@ public class KMeansManager {
         return dest;
     }
 
+    private float [][] convertMatrixColorSpace(float [][] dataFeatureMatrix, String colorSpace){
+
+        float [][] convertedMatrix = null;
+
+        if (colorSpace.equals("L*a*b*"))
+        {
+            convertedMatrix = ColorSpaceConversion.labToRGBMatrix(dataFeatureMatrix);
+        }
+        else if (colorSpace.equals("XYZ"))
+        {
+            convertedMatrix = ColorSpaceConversion.xyzToRGBMatrix(dataFeatureMatrix);
+        }
+        else if (colorSpace.equals("HSB"))
+        {
+            convertedMatrix = ColorSpaceConversion.hsbToRGBMatrix(dataFeatureMatrix);
+        }
+//        else if (colorSpace.equals("YCrCb"))
+//        {
+//        }
+        else // if (colorSpace.equals("None"))
+        {
+            convertedMatrix  = dataFeatureMatrix;
+        }
+
+        return convertedMatrix;
+    }
+
     /**
      * Convert image to a stack of FloatProcessors.
      *
@@ -360,4 +460,46 @@ public class KMeansManager {
         }
     }
 
+    private static ImagePlus convertToHSBFloatStack(final ImagePlus src) {
+
+        final ImagePlus dest = new Duplicator().run(src);
+
+        // Remember scaling setup
+        final boolean doScaling = ImageConverter.getDoScaling();
+
+        try {
+            // Disable scaling
+            ImageConverter.setDoScaling(false);
+
+            if (src.getType() == ImagePlus.COLOR_RGB)
+            {
+                if (src.getStackSize() > 1)
+                {
+                    throw new IllegalArgumentException("Unsupported image type: RGB with more than one slice.");
+                }
+
+                final ImageConverter converter = new ImageConverter(dest);
+                converter.convertToHSB();
+            }
+
+            if (dest.getStackSize() > 1)
+            {
+                final StackConverter converter = new StackConverter(dest);
+                converter.convertToGray32();
+
+            }
+            else
+            {
+                final ImageConverter converter = new ImageConverter(dest);
+                converter.convertToGray32();
+            }
+
+            return dest;
+        }
+        finally
+        {
+            // Restore original scaling option
+            ImageConverter.setDoScaling(doScaling);
+        }
+    }
 }

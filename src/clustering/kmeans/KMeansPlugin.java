@@ -79,6 +79,13 @@ public class KMeansPlugin implements PlugIn{
         /* Configuring the KMeansManager */
         getConfigurationFromDialog(configDialog, KMM);
 
+        /* Validate the correct color space conversion */
+        if (!validateColorSpace(imp, KMM.getColorSpace()))
+        {
+            IJ.error(TITLE, "Invalid Color Space Conversion");
+            return;
+        }
+
         /* Calling the clustering algorithm */
         ImageStack[] imgArray = KMM.run(imp);
 
@@ -143,6 +150,25 @@ public class KMeansPlugin implements PlugIn{
         return validImage;
     }
 
+    private boolean validateColorSpace(ImagePlus img, String colorSpace){
+
+        boolean validColorSpace = true;
+        if (img.getStackSize() > 1 && !colorSpace.equals("None"))
+        {
+            validColorSpace = false;
+        }
+        else if (img.getStackSize() == 1 && !(img.getType() == ImagePlus.COLOR_RGB) && !colorSpace.equals("None"))
+        {
+            validColorSpace = false;
+        }
+        else
+        {
+            validColorSpace = true;
+        }
+
+        return validColorSpace;
+    }
+
     private GenericDialog configureDialog(KMeansManager KMM, GenericDialog dialog){
         
         dialog.addNumericField("Number_of_clusters", KMM.getNumberOfClusters(), 0);
@@ -151,6 +177,7 @@ public class KMeansPlugin implements PlugIn{
 //        dialog.addCheckbox("Random_clusters_initialization", KMM.getRandomInitialization());
 //        dialog.addCheckbox("KMeans++_clusters_initialization", KMM.getKMeansPlusPlusInitialization());
         dialog.addNumericField("Randomization_seed", KMM.getRandomizationSeed(), 0);
+        dialog.addChoice("Color_Space_Conversion", KMM.getColorSpaces(), KMM.getColorSpace());
         dialog.addCheckbox("Show_clusters_as_centroid_value", KMM.getClusterCenterColorsVisualization());
         dialog.addCheckbox("Show_clusters_as_random_RGB", KMM.getRandomRGBVisualization());
         dialog.addCheckbox("Show_clusters_as_gray_levels", KMM.getGrayScaleVisualization());
@@ -165,6 +192,7 @@ public class KMeansPlugin implements PlugIn{
 //        KMM.setRandomInitialization(dialog.getNextBoolean());
 //        KMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
         KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
+        KMM.setColorSpace(dialog.getNextChoice());
         KMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());
         KMM.setRandomRGBVisualization(dialog.getNextBoolean());
         KMM.setGrayScaleVisualization(dialog.getNextBoolean());

@@ -227,6 +227,7 @@ public class KMeans {
             final double d = a[i] - b[i];
             sum += d * d;
         }
+        //return sum;
         return Math.sqrt(sum);
     }
 
