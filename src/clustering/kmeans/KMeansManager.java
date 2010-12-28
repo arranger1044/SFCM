@@ -9,6 +9,7 @@ package clustering.kmeans;
  *
  * @author valerio
  */
+import ij.IJ;
 import ij.process.ByteProcessor;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -23,7 +24,7 @@ import util.ColorSpaceConversion;
 import vectorLib.VectorProcessor;
 
 
-public class KMeansManager {
+public class KMeansManager implements ClusteringDelegate{
 
    private int randomizationSeed = 48;
    private double tolerance = 0.0001;
@@ -37,6 +38,7 @@ public class KMeansManager {
    private static final String[] colorSpaces = {"None", "XYZ", "L*a*b*", "HSB"};
    private String colorSpace = "None";
    private int imageType;
+   private boolean printOnConsole = true;
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -55,8 +57,9 @@ public class KMeansManager {
    }
 
     /**
-     * Return tolerance used to determine cluster centroid distance. This tolerance is used to
-     * determine if a centroid changed location between iterations.
+     * Return tolerance used to determine cluster centroid distance. 
+     * This tolerance is used to determine if a centroid changed location
+     * between iterations.
      *
      * @return cluster centroid location tolerance.
      */
@@ -144,9 +147,10 @@ public class KMeansManager {
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance,
-                                             randomizationSeed, initMode);
+                                             randomizationSeed, initMode, this);
         final long endTime = System.currentTimeMillis();
-        System.out.println("Clustering completed in " + (endTime - startTime) + " ms.");
+        final String message = "Clustering completed in " + (endTime - startTime) + " ms.";
+        updateStatus(message);
         
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
@@ -158,7 +162,8 @@ public class KMeansManager {
         if (grayScaleVisualization)
         {
             ImageStack imgsbp = new ImageStack(vp.getWidth(), vp.getHeight());
-            imgsbp.addSlice("GrayScale", encodeClusteredImageInGray(vp, clusterMemberships, clusterCenters));
+            imgsbp.addSlice("GrayScale", encodeClusteredImageInGray(vp, clusterMemberships,
+                                                                    clusterCenters));
             stacks[visualizationModes] = imgsbp;
             visualizationModes++;
         }
@@ -166,21 +171,26 @@ public class KMeansManager {
         if (randomRGBVisualization)
         {
             ImageStack imgsbp2 = new ImageStack(vp.getWidth(), vp.getHeight());
-            imgsbp2.addSlice("RGB", encodeClusteredImageInRGB(vp, clusterMemberships, clusterCenters, null, randomizationSeed));
+            imgsbp2.addSlice("RGB", encodeClusteredImageInRGB(vp, clusterMemberships, 
+                                                              clusterCenters, null,
+                                                              randomizationSeed));
             stacks[visualizationModes] = imgsbp2;
             visualizationModes++;
         }
 
         if (binaryStackVisualization)
         {
-            stacks[visualizationModes] = encodeClusteredImageBinaryStack(vp, clusterMemberships, clusterCenters);
+            stacks[visualizationModes] = encodeClusteredImageBinaryStack(vp, clusterMemberships,
+                                                                         clusterCenters);
             visualizationModes++;
         }
 
         if (clusterCenterColorsVisualization)
         {
-            float [][] computedClusterCenters = convertMatrixColorSpace(clusterCenters, colorSpace);
-            stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships, computedClusterCenters);
+            float [][] computedClusterCenters = convertMatrixColorSpace(clusterCenters,
+                                                                        colorSpace);
+            stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships,
+                                                                                     computedClusterCenters);
             visualizationModes++;
         }
 
@@ -224,15 +234,6 @@ public class KMeansManager {
 
             System.out.println("HS "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
        }
-//       else if (colorSpace.equals("YCrCb"))
-//       {
-//            final ByteProcessor[] bps = ColorSpaceConversion.rgbToYCbCr((ColorProcessor)imp.getProcessor());
-//            final ImageStack stack = new ImageStack(imp.getWidth(), imp.getHeight());
-//            stack.addSlice("Y", bps[0]);
-//            stack.addSlice("Cb", bps[1]);
-//            stack.addSlice("Cr", bps[2]);
-//            vp = new VectorProcessor(stack);
-//       }
        else // if (colorSpace.equals("None"))
        {
             final ImagePlus stack = convertToFloatStack(imp);
@@ -264,7 +265,9 @@ public class KMeansManager {
         return initMode;
     }
 
-    private ByteProcessor encodeClusteredImageInGray(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+    private ByteProcessor encodeClusteredImageInGray(VectorProcessor vp, 
+                                                     int [][] clusterMemberships,
+                                                     float [][] clusterCenters){
 
         final ByteProcessor dest = new ByteProcessor(vp.getWidth(), vp.getHeight());
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
@@ -283,7 +286,9 @@ public class KMeansManager {
         return dest;
     }
 
-   private ImageStack encodeClusteredImageBinaryStack(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+   private ImageStack encodeClusteredImageBinaryStack(VectorProcessor vp, 
+                                                      int [][] clusterMemberships,
+                                                      float [][] clusterCenters){
 
         final ImageStack dest = new ImageStack(vp.getWidth(), vp.getHeight());
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
@@ -332,7 +337,8 @@ public class KMeansManager {
         for (int i = 0; i < nClusters; i++)
         {
             clusterColors[i] = ColorManager.randomMixedRGBColor(mixingColor);
-            System.out.println("C" + i + " " + clusterColors[i][0] + " " + clusterColors[i][1] + " " + clusterColors[i][2]);
+            System.out.println("C" + i + " " + clusterColors[i][0] +
+                    " " + clusterColors[i][1] + " " + clusterColors[i][2]);
         }
 
         while (iterator.hasNext())
@@ -342,9 +348,9 @@ public class KMeansManager {
             {
                 if (clusterMemberships[iterator.getOffset()][j] == 1)
                 {
-                    //System.out.println("C" + j + " " + clusterColors[j][0] + " " + clusterColors[j][1] + " " + clusterColors[j][2]);
+                   
                     dest.putPixel(iterator.getX(), iterator.getY(), clusterColors[j]);
-                    //dest.putPixel(iterator.getX(), iterator.getY(), clusterColors[j][0]*clusterColors[j][1]*clusterColors[j][2]);
+                    
                 }
             }
         }
@@ -353,7 +359,9 @@ public class KMeansManager {
         return dest;
     }
 
-    private ImageStack encodeClusteredImageWithClusterCenterColors(VectorProcessor vp, int [][] clusterMemberships, float [][] clusterCenters){
+    private ImageStack encodeClusteredImageWithClusterCenterColors(VectorProcessor vp, 
+                                                                   int [][] clusterMemberships,
+                                                                   float [][] clusterCenters){
 
         final ImageStack dest = new ImageStack(vp.getWidth(), vp.getHeight());
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
@@ -432,7 +440,8 @@ public class KMeansManager {
             {
                 if (src.getStackSize() > 1)
                 {
-                    throw new IllegalArgumentException("Unsupported image type: RGB with more than one slice.");
+                    throw new IllegalArgumentException("Unsupported image type: "
+                            + "RGB with more than one slice.");
                 }
 
                 final ImageConverter converter = new ImageConverter(dest);
@@ -475,7 +484,8 @@ public class KMeansManager {
             {
                 if (src.getStackSize() > 1)
                 {
-                    throw new IllegalArgumentException("Unsupported image type: RGB with more than one slice.");
+                    throw new IllegalArgumentException("Unsupported image type: "
+                            + "RGB with more than one slice.");
                 }
 
                 final ImageConverter converter = new ImageConverter(dest);
@@ -500,6 +510,23 @@ public class KMeansManager {
         {
             // Restore original scaling option
             ImageConverter.setDoScaling(doScaling);
+        }
+    }
+
+    @Override
+    public void updateStatus(float[][] V, int[][] U, long nIteration, float error) {
+        
+        final String message = "k-means iteration " + nIteration + ", error: " + error;
+        IJ.showStatus(message);
+    }
+
+    @Override
+    public void updateStatus(String message) {
+
+        IJ.showStatus(message);
+        if (printOnConsole)
+        {
+            System.out.println(message);
         }
     }
 }

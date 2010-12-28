@@ -18,22 +18,24 @@ public class KMeans {
     }
 
     public static Object[] run (float [][] X, int k, double tolerance,
-                                int randomSeed, int initMode){
+                                int randomSeed, int initMode,
+                                ClusteringDelegate delegate){
 
         float [][] V = new float[k][X[0].length];
         int [][] U = new int [X.length][k];
 
-        V = initializeClusterCenterMatrix(X, V, k, randomSeed, initMode);
+        V = initializeClusterCenterMatrix(X, V, k, randomSeed, initMode, delegate);
         U = computeClusterMembership(X, U, V, k);
 
-        return clusterize(X, U, V, k, tolerance);
+        return clusterize(X, U, V, k, tolerance, delegate);
     }
 
     private static float [][] initializeClusterCenterMatrix(float [][] X,
                                                             float [][] V,
                                                             int k,
                                                             int randomSeed,
-                                                            int initMode){
+                                                            int initMode,
+                                                            ClusteringDelegate delegate){
 
         final long startTime = System.currentTimeMillis();
 
@@ -52,7 +54,9 @@ public class KMeans {
         }
 
         final long endTime = System.currentTimeMillis();
-        System.out.println("Initialization done in " + (endTime - startTime) + "ms");
+        //System.out.println("Initialization done in " + (endTime - startTime) + "ms");
+        String message = "Initialization done in " + (endTime - startTime) + "ms";
+        delegate.updateStatus(message);
         
         return V;
     }
@@ -80,7 +84,7 @@ public class KMeans {
             }
         }
         return V;
-     }
+    }
 
     private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
 
@@ -89,57 +93,43 @@ public class KMeans {
         final int nFeatures = X[0].length;
 
         // Location of pixels used as cluster centers
-        //final List<Integer> centerLocation = new ArrayList<Integer>();
         final HashSet<Integer> centerLocation = new HashSet<Integer>();
         int clusterCreated = 0;
         // Choose one center uniformly at random from among pixels
         {
-//            final Point p = toPoint(random.nextInt(nbPixels), width);
-//            centerLocation.add(p);
-//            centers.add(vp.get(p.x, p.y));
             final int p = random.nextInt(nbPixels);
             centerLocation.add(p);
             System.arraycopy(X[p], 0, V[0], 0, nFeatures);
-            //V[0] = X[p];
             clusterCreated++;
         }
 
         final double[] dp2 = new double[nbPixels];
         while (clusterCreated < k) {
-            //assert centers.size() == centerLocation.size();
-
             // For each data point p compute D(p), the distance between p and the nearest center that
             // has already been chosen.
             double sum = 0;
-            //final float[][] centersArray = centers.toArray(new float[centers.size()][]);
+            
             for (int offset = 0; offset < nbPixels; offset++) {  
 
                 if (centerLocation.contains(offset)) {
                     continue;
                 }
-
                 // Distance to closest cluster
-                //final float[] v = vp.get(p.x, p.y);
+
                 final float[] v = X[offset];
-//                final int cci = closestCluster(v, centersArray);
-//                final double d = distance(v, centersArray[cci]);
                 final int cci = closestCluster(v, V, clusterCreated);
-                final double d = distance(v, V[cci]);
+                final double d = euclideanDistance(v, V[cci]);
                 sum += d * d;
-                dp2[offset] = sum;  // distribuzione cumulata   vettore di pixel nel quale metti la somma = d*d del pixel corrente e di tutti i precedenti.
+                dp2[offset] = sum;
             }
 
 
-            // Add one new data point at random as a new center, using a weighted probability distribution where
-            // a point p is chosen with probability proportional to D(p)^2
+            /* Add one new data point at random as a new center, using a weighted probability distribution where
+             * a point p is chosen with probability proportional to D(p)^2 */
             final double r = random.nextDouble() * sum;
             for (int offset = 0; offset < nbPixels; offset++) {
-                //final Point p = toPoint(offset, width);
 
-                // Test that this is not a repeat of already selected center
-//                if (centerLocation.contains(p)) {
-//                    continue;
-//                }
+                /* Test that this is not a repeat of already selected center */
                 if (centerLocation.contains(offset)) {
                     continue;
                 }
@@ -147,8 +137,6 @@ public class KMeans {
                 if (dp2[offset] >= r)
                 {
                     centerLocation.add(offset);
-//                    final float[] v = vp.get(p.x, p.y);
-//                    centers.add(v);
                     System.arraycopy(X[offset], 0, V[clusterCreated], 0, nFeatures);
                     clusterCreated++;
                     break;
@@ -156,7 +144,6 @@ public class KMeans {
             }
         }
 
-        //return centers.toArray(new float[centers.size()][]);
         return V;
     }
 
@@ -202,7 +189,7 @@ public class KMeans {
         for (int i = 0; i < k; i++)
         {
             final float[] clusterCenter = clusterCenters[i];
-            final double d = distance(clusterCenter, x);
+            final double d = euclideanDistance(clusterCenter, x);
             if (d < minDistance)
             {
                 minDistance = d;
@@ -221,7 +208,7 @@ public class KMeans {
      * @param b second point.
      * @return distance.
      */
-    private static double distance(final float[] a, final float[] b) {
+    private static double euclideanDistance(final float[] a, final float[] b) {
         double sum = 0;
         for (int i = 0; i < a.length; i++) {
             final double d = a[i] - b[i];
@@ -232,7 +219,8 @@ public class KMeans {
     }
 
 
-    private static Object[] clusterize(float [][] X, int [][] U, float [][] V, int k, double tolerance){
+    private static Object[] clusterize(float [][] X, int [][] U, float [][] V, 
+                                       int k, double tolerance, ClusteringDelegate delegate){
         boolean converged = false;
         long count = 0;
 
@@ -262,7 +250,7 @@ public class KMeans {
                 final float[] clusterCenter = V[i];
                 final float[] newClusterCenter = newClusterMeans[i].mean();
                 //clusterCenters[i] = newClusterCenter;
-                distanceSum += distance(clusterCenter, newClusterCenter);
+                distanceSum += euclideanDistance(clusterCenter, newClusterCenter);
             }
 
             converged = distanceSum < tolerance;
@@ -274,8 +262,7 @@ public class KMeans {
 
             ++count;
 
-            final String message = "k-means iteration " + count + ", cluster error: " + distanceSum;
-            System.out.println(message);
+            delegate.updateStatus(null, null, count, distanceSum);
 
         }
 
@@ -284,12 +271,6 @@ public class KMeans {
         resultMatrixes[1] = V;
         return resultMatrixes;
     }
-
-//    private static Point toPoint(final int offset, final int width) {
-//        final int y = offset / width;
-//        final int x = offset - y * width;
-//        return new Point(x, y);
-//    }
 
     private static final class MeanElement {
 

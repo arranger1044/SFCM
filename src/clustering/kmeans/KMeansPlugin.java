@@ -87,7 +87,13 @@ public class KMeansPlugin implements PlugIn{
         }
 
         /* Calling the clustering algorithm */
+        final long startTime = System.currentTimeMillis();
         ImageStack[] imgArray = KMM.run(imp);
+        final long endTime = System.currentTimeMillis();
+        final String message = "Clustering and Visualization completed in " +
+                                                      (endTime - startTime) +
+                                                                     " ms.";
+        IJ.showStatus(message);
 
         /* Show result images */
         String type = null;
@@ -95,13 +101,13 @@ public class KMeansPlugin implements PlugIn{
         {
             ImagePlus r = null;
 
-            System.out.println(i + "len " + imgArray.length + " " + imgArray[i].getSize());
+            //System.out.println(i + " len " + imgArray.length + " " + imgArray[i].getSize());
             ImageProcessor IP = imgArray[i].getProcessor(1);
             int slices = imgArray[i].getSize();
-            System.out.println("class " + IP.getClass());
+            //System.out.println("class " + IP.getClass());
             if (IP.getClass() == ij.process.ByteProcessor.class && slices == 1)
             {
-                System.out.println("Entrato");
+                //System.out.println("Entrato");
                 adjustBrightness(IP, KMM.getNumberOfClusters());
                 r = new ImagePlus("Clusters in Gray Scale", IP);
             }
