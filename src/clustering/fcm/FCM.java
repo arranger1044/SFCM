@@ -41,7 +41,7 @@ public class FCM {
         
         Object[] initedMatrixes = new Object[2];
         float [][] D = null;
-        float [][] Um = null;
+
         switch(initMode)
         {
             case 0:
@@ -58,8 +58,6 @@ public class FCM {
                 break;
             case 2:
                 U = initializeClusterMembershipRandom(U, k, randomSeed);
-                Um = computeExponentialMembership(U, Um, m);
-                V = updateClusterCenterMatrix(X, Um, V);
                 System.out.println("Random U");
                 break;
             default:
@@ -294,10 +292,10 @@ public class FCM {
         return D;
     }
 
-    private static float euclideanDistance(final int a, final int b, float [][] D){
-
-        return D[a][b];
-    }
+//    private static float euclideanDistance(final int a, final int b, float [][] D){
+//
+//        return D[a][b];
+//    }
 
     private static float [][] computeExponentialMembership(float [][] U, float [][] Um, float m){
 
@@ -329,7 +327,8 @@ public class FCM {
         {
              for(int j = 0; j < V.length; j++)
                {
-                float distancePixelToCluster = euclideanDistance(i, j, D);
+                //float distancePixelToCluster = euclideanDistance(i, j, D);
+                float distancePixelToCluster = D[i][j];
                 //System.out.println("Distance " + distancePixelToCluster);
                 objF += distancePixelToCluster * Um[i][j];
                 //System.out.println("obj " + objF);
@@ -345,14 +344,16 @@ public class FCM {
         {
             for(int j = 0; j < V.length; j++)
             {
-                    float num = euclideanDistance(i, j, D);
+                    //float num = euclideanDistance(i, j, D);
+                    float num = D[i][j];
                     if(num != 0.0f)
                     {
                                             //  sum of distances from this data point to all clusters.
                         float sumTerms = 0;
                         for(int k = 0; k < V.length; k++)
                         {
-                             float thisDistance = euclideanDistance(i,k, D);
+                            //float thisDistance = euclideanDistance(i,k, D);
+                            float thisDistance = D[i][k];
                             sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
 
                                              if ( Float.isNaN(thisDistance))
