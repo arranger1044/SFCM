@@ -56,8 +56,11 @@ public class FCM {
             case 1:
                 V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
                 D = euclideanDistanceMatrix(X, V, D);
+                //printMatrix(D);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
+                //printMatrix(U);
                 System.out.println("K-Means++");
+                
                 break;
             case 2:
                 U = initializeClusterMembershipRandom(U, k, randomSeed);
@@ -105,8 +108,9 @@ public class FCM {
         {
             for (int j = 0; j < A[0].length; j ++)
             {
-                System.out.println(A[i][j]);
+                System.out.print(A[i][j] + " ");
             }
+            System.out.println("");
         }
     }
 
@@ -357,23 +361,37 @@ public class FCM {
                         {
                             //float thisDistance = euclideanDistance(i,k, D);
                             float thisDistance = D[i][k];
-                            sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
 
-                                             if ( Float.isNaN(thisDistance))
-                    {
-                        throw new IllegalArgumentException("thisDistance"+ num + " m " + m);
-                    }
-                                             if ( Float.isNaN(sumTerms))
-                    {
-                        throw new IllegalArgumentException("sumterms "+ thisDistance + " d " + num+ " j " + j + " k " + k);
-                    }
-                    }
+                            sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
+//                            if (thisDistance == 0.0f)
+//                            {
+//                                System.out.println("Ouch " + i + " " + k + " " + j + " " +
+//                                        Math.pow(num / thisDistance, (2f / (m - 1f))));
+//                            }
+
+//                                             if ( Float.isNaN(thisDistance))
+//                    {
+//                        throw new IllegalArgumentException("thisDistance"+ num + " m " + m);
+//                    }
+//                                             if ( Float.isNaN(sumTerms))
+//                    {
+//                        throw new IllegalArgumentException("sumterms "+ thisDistance + "
+//                            d " + num+ " j " + j + " k " + k);
+//                    }
+                        }
 
                         U[i][j] = (1f / sumTerms);
                     }
                     else
                     {
-                       U[i][j] = 1.0f;
+//                        float sum = 0;
+//                        for (int h = 0; h < V.length; h++)
+//                        {
+//                            if (h != j)
+//                                sum += U[i][h];
+//                        }
+//                        System.out.println("Sum " + sum);
+                        U[i][j] = 1.0f;
                     }
 
                     if ( Float.isNaN(U[i][j]))

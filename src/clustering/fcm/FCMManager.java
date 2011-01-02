@@ -17,8 +17,6 @@ import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import util.ColorManager;
 import util.ColorSpaceConversion;
 import vectorLib.VectorProcessor;
@@ -41,7 +39,7 @@ public class FCMManager implements ClusteringDelegate{
    private static final String[] colorSpaces = {"None", "XYZ", "L*a*b*", "HSB"};
    private String colorSpace = "None";
    private int imageType;
-   private boolean printOnConsole = true;
+   private boolean printOnConsole = false;
    private float fuzzyness = 2.0f;
 
    private RandomAccessFile RAF;
@@ -563,7 +561,7 @@ public class FCMManager implements ClusteringDelegate{
         String csvMessage = nIteration
                                 + "," + errorJ + "," + errorU + "," + errorV + "\n";
 
-        //RAF.writeBytes(csvMessage);
+        RAF.writeBytes(csvMessage);
 
     }
 
