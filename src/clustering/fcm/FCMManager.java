@@ -15,6 +15,10 @@ import ij.process.FloatProcessor;
 import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import ij.process.StackConverter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import util.ColorManager;
 import util.ColorSpaceConversion;
 import vectorLib.VectorProcessor;
@@ -25,7 +29,7 @@ import vectorLib.VectorProcessor;
  */
 public class FCMManager implements ClusteringDelegate{
 
-    private int randomizationSeed = 48;
+   private int randomizationSeed = 48;
    private double tolerance = 0.0001;
    private int numberOfClusters = 4;
    private boolean grayScaleVisualization = true;
@@ -39,6 +43,8 @@ public class FCMManager implements ClusteringDelegate{
    private int imageType;
    private boolean printOnConsole = true;
    private float fuzzyness = 2.0f;
+
+   private RandomAccessFile RAF;
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -133,6 +139,10 @@ public class FCMManager implements ClusteringDelegate{
 
    public void setFuzzyness(float m){
        fuzzyness = m;
+   }
+
+   public void setTestFilePointer(RandomAccessFile testFile){
+       RAF = testFile;
    }
 
    public ImageStack[] run(ImagePlus img)
@@ -525,7 +535,7 @@ public class FCMManager implements ClusteringDelegate{
     @Override
     public void updateStatus(float[][] V, int[][] U, long nIteration, float error) {
 
-        final String message = "k-means iteration " + nIteration + ", error: " + error;
+        final String message = "Fuzzy C-Means iteration " + nIteration + ", error: " + error;
         IJ.showStatus(message);
     }
 
@@ -537,6 +547,24 @@ public class FCMManager implements ClusteringDelegate{
         {
             System.out.println(message);
         }
+    }
+
+    @Override
+    public void updateStatus(float[][] V, int[][] U, long nIteration, float errorJ,
+                             float errorU, float errorV) throws IOException{
+        final String message = "Fuzzy C-Means iteration " + nIteration
+                                + ", errorJ: " + errorJ + ", errorU: " + errorU + ", errorV: " + errorV;
+        IJ.showStatus(message);
+        if (printOnConsole)
+        {
+            System.out.println(message);
+        }
+
+        String csvMessage = nIteration
+                                + "," + errorJ + "," + errorU + "," + errorV + "\n";
+
+        //RAF.writeBytes(csvMessage);
+
     }
 
 }

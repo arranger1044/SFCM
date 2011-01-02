@@ -5,8 +5,11 @@
 
 package clustering.fcm;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -446,6 +449,50 @@ public class FCM {
         return defU;
     }
 
+    private static void matrixCopy(float [][] A, float [][] B){
+
+        int nDim = A[0].length;
+        for (int i = 0; i < A.length; ++i)
+        {
+            System.arraycopy(A[i], 0, B[i], 0, nDim);
+        }
+    }
+
+    private static float frobeniusNorm(float [][] A, float [][] B){
+        
+        float d = 0;
+        float sum = 0;
+        int nDim = A[0].length;
+        for(int i = 0; i < A.length; i++)
+        {
+            for(int j = 0; j < nDim; j++)
+            {
+                 d = A[i][j] - B[i][j];
+                 sum += d*d;
+            }
+        }
+        return (float) Math.sqrt(sum);
+    }
+
+    private static float maxNorm(float [][] A, float [][] B){
+
+        float max = 0;
+        float abs = 0;
+        int nDim = A[0].length;
+        for(int i = 0; i < A.length; i++)
+        {
+            for(int j = 0; j < nDim; j++)
+            {
+                abs = Math.abs(A[i][j] - B[i][j]);
+                if (abs > max)
+                {
+                    max = abs;
+                }
+            }
+        }
+        return max;
+    }
+
     private static Object[] clusterize(float [][] X, float [][] U, float [][] V,
                                        int k, double tolerance, ClusteringDelegate delegate,
                                        float m){
@@ -459,9 +506,16 @@ public class FCM {
         float [][] Um = null;
         Um = computeExponentialMembership(U, Um, m);
 
+        float [][] oldU = new float [U.length][k];
+        float [][] oldV = new float [V.length][nFeatures];
+
+        float diffJ, diffU, diffV;
+
+        final int iterations = 300;
+
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
 
-        while (!converged)
+        while (count < iterations)
         {
 
             V = updateClusterCenterMatrix(X, Um, V);
@@ -474,17 +528,30 @@ public class FCM {
 
             float newJ = computeObjectiveFunction(X, Um, V, D);
 
-            float distanceSum = Math.abs(newJ - oldJ);
-            if (distanceSum < tolerance)
-                converged = true;
-            else
+            diffJ = Math.abs(newJ - oldJ);
+            diffU = frobeniusNorm(U, oldU);
+            diffV = frobeniusNorm(V, oldV);
+//            diffU = maxNorm(U, oldU);
+//            diffV = maxNorm(V, oldV);
+
+//            if (diffJ < tolerance)
+//            {
+//                converged = true;
+//            }
+//            else
+//            {
                 oldJ = newJ;
-            /* Check for convergence */
-            
+                matrixCopy(U, oldU);
+                matrixCopy(V, oldV);
+//            }
 
             ++count;
-
-            delegate.updateStatus(null, null, count, distanceSum);
+            try {
+                //delegate.updateStatus(null, null, count, diffJ);
+                delegate.updateStatus(null, null, count, diffJ, diffU, diffV);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
 
         }
 

@@ -62,7 +62,7 @@ public class FCMPlugin implements PlugIn{
         FCMM = new FCMManager();
 
         /* Create an instance of Generic Dialog */
-        GenericDialog configDialog = new GenericDialog("K-means Configuration");
+        GenericDialog configDialog = new GenericDialog("Fuzzy C-Means Configuration");
         /* and configure it according to the defaults in KMeansManager */
         configDialog = configureDialog(FCMM, configDialog);
         /* Show Dialog */
