@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite errors="0" failures="0" hostname="tropicaliceland.local" name="clustering.fcm.TestManager" tests="1" time="772.772" timestamp="2011-01-02T17:19:33">
+<testsuite errors="0" failures="0" hostname="tropicaliceland.local" name="clustering.fcm.TestManager" tests="1" time="50992.826" timestamp="2011-01-02T18:49:18">
   <properties>
     <property name="libs.jsp-compiler.javadoc" value="" />
     <property name="netbeans.autoupdate.country" value="IT" />
@@ -161,7 +161,7 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle" />
     <property name="libs.semc-ant-utils.javadoc" value="" />
     <property name="libs.jaxws21.classpath" value="/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/ide/modules/ext/jaxb/jaxb-impl.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/ide/modules/ext/jaxb/jaxb-xjc.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/FastInfoset.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/gmbal-api-only.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/http.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/jaxws-rt.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/jaxws-tools.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/management-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/mimepull.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/policy.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/saaj-impl.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/stax-ex.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/streambuffer.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/woodstox.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/api/jaxws-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/api/jsr181-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/api/jsr250-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/java/modules/ext/jaxws22/api/saaj-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/ide/modules/ext/jaxb/activation.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/ide/modules/ext/jaxb/api/jaxb-api.jar:/Applications/NetBeans/NetBeans 6.9.1.app/Contents/Resources/NetBeans/ide/modules/ext/jaxb/api/jsr173_api.jar" />
-    <property name="TSTAMP" value="1819" />
+    <property name="TSTAMP" value="1949" />
     <property name="libs.struts.src" value="" />
     <property name="compile.on.save" value="false" />
     <property name="apple.awt.graphics.UseQuartz" value="true" />
@@ -461,9 +461,9 @@
     <property name="platform.active" value="default_platform" />
     <property name="awt.toolkit" value="apple.awt.CToolkit" />
   </properties>
-  <testcase classname="clustering.fcm.TestManager" name="test" time="772.714" />
+  <testcase classname="clustering.fcm.TestManager" name="test" time="50992.773" />
   <system-out><![CDATA[/Users/valerio/Desktop/sfcm
-3
+2
 blobs_noise.png fuzzyness:1.1 k:4 rnd:48 init:random V (Forgy)
 Stack slices 1
 Distance Matrix allocated
@@ -477,6 +477,142 @@ K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
 blobs_noise.png fuzzyness:1.1 k:4 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:4 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:12 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:1.1 k:20 rnd:10000 init:random U
 Stack slices 1
 Random U
 Allocating U^m matrix
@@ -498,6 +634,142 @@ Stack slices 1
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:4 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:12 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:2.0 k:20 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
 blobs_noise.png fuzzyness:5.0 k:4 rnd:48 init:random V (Forgy)
 Stack slices 1
 Distance Matrix allocated
@@ -515,104 +787,597 @@ Stack slices 1
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:1.1 k:4 rnd:48 init:random V (Forgy)
+blobs_noise.png fuzzyness:5.0 k:4 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:4 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:4 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:4 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:4 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:4 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:12 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:48 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:48 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:48 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:1000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:1000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 1
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:10000 init:K-Means++
+Stack slices 1
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+blobs_noise.png fuzzyness:5.0 k:20 rnd:10000 init:random U
+Stack slices 1
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:48 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:1.1 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:48 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:1.1 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:48 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:2.0 k:4 rnd:48 init:random V (Forgy)
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:1000 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:2.0 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:1000 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:2.0 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:1000 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:5.0 k:4 rnd:48 init:random V (Forgy)
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:10000 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:5.0 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:10000 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-clown24.png fuzzyness:5.0 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:4 rnd:10000 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:1.1 k:4 rnd:48 init:random V (Forgy)
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:48 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:1.1 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:48 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:1.1 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:48 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:2.0 k:4 rnd:48 init:random V (Forgy)
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:1000 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:2.0 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:1000 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:2.0 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:1000 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:5.0 k:4 rnd:48 init:random V (Forgy)
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:10000 init:random V (Forgy)
 Stack slices 3
 Distance Matrix allocated
 Random V
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:5.0 k:4 rnd:48 init:K-Means++
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:10000 init:K-Means++
 Stack slices 3
 Distance Matrix allocated
 K-Means++
 Allocating U^m matrix
 Distance Matrix allocated
-submori.png fuzzyness:5.0 k:4 rnd:48 init:random U
+magicitaly.jpg fuzzyness:1.1 k:12 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:1.1 k:20 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:4 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:12 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:2.0 k:20 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:4 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:12 rnd:10000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:48 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:48 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:48 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:1000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:1000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:1000 init:random U
+Stack slices 3
+Random U
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:10000 init:random V (Forgy)
+Stack slices 3
+Distance Matrix allocated
+Random V
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:10000 init:K-Means++
+Stack slices 3
+Distance Matrix allocated
+K-Means++
+Allocating U^m matrix
+Distance Matrix allocated
+magicitaly.jpg fuzzyness:5.0 k:20 rnd:10000 init:random U
 Stack slices 3
 Random U
 Allocating U^m matrix

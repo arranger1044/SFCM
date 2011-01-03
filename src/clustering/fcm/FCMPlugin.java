@@ -185,6 +185,7 @@ public class FCMPlugin implements PlugIn{
         dialog.addCheckbox("Show_clusters_as_random_RGB", FCMM.getRandomRGBVisualization());
         dialog.addCheckbox("Show_clusters_as_gray_levels", FCMM.getGrayScaleVisualization());
         dialog.addCheckbox("Show_clusters_as_binary_stack", FCMM.getBinaryStackVisualization());
+        dialog.addCheckbox("Show_clusters_as_fuzzy_stack", FCMM.getFuzzyStackVisualization());
         return dialog;
     }
 
@@ -201,6 +202,7 @@ public class FCMPlugin implements PlugIn{
         FCMM.setRandomRGBVisualization(dialog.getNextBoolean());
         FCMM.setGrayScaleVisualization(dialog.getNextBoolean());
         FCMM.setBinaryStackVisualization(dialog.getNextBoolean());
+        FCMM.setFuzzyStackVisualization(dialog.getNextBoolean());
     }
 
     private void adjustBrightness(ImageProcessor IP, int nClusters){

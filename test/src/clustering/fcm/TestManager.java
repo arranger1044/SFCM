@@ -21,8 +21,8 @@ public class TestManager extends junit.framework.TestCase{
 
     private String [] image;
     private String path;
-    private int [] randomizationSeed = {48};
-    private int [] numberOfClusters = {4};
+    private int [] randomizationSeed = {48, 1000, 10000};
+    private int [] numberOfClusters = {4, 12, 20};
     private final String[] initModes = {"random V (Forgy)", "K-Means++", "random U"};
     private float [] fuzzyness = {1.1f, 2, 5};
 

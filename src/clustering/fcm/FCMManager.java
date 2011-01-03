@@ -41,8 +41,9 @@ public class FCMManager implements ClusteringDelegate{
    private int imageType;
    private boolean printOnConsole = false;
    private float fuzzyness = 2.0f;
+   private boolean fuzzyStackVisualization = false;
 
-   private RandomAccessFile RAF;
+   private RandomAccessFile RAF = null;
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -143,6 +144,14 @@ public class FCMManager implements ClusteringDelegate{
        RAF = testFile;
    }
 
+   public boolean getFuzzyStackVisualization(){
+       return fuzzyStackVisualization;
+   }
+
+   public void setFuzzyStackVisualization(boolean visualization){
+       fuzzyStackVisualization = visualization;
+   }
+
    public ImageStack[] run(ImagePlus img)
     {
         ImageStack[] imgArray = null;
@@ -172,7 +181,7 @@ public class FCMManager implements ClusteringDelegate{
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
 
-        Object[] stacks = new Object[4];
+        Object[] stacks = new Object[5];
         //imgArray = new ImageStack[4];
         int visualizationModes = 0;
 
@@ -208,6 +217,13 @@ public class FCMManager implements ClusteringDelegate{
                                                                         colorSpace);
             stacks[visualizationModes] = encodeClusteredImageWithClusterCenterColors(vp, clusterMemberships,
                                                                                      computedClusterCenters);
+            visualizationModes++;
+        }
+
+        if (fuzzyStackVisualization)
+        {
+            stacks[visualizationModes] = encodeClusteredImageFuzzyStack(vp, (float[][]) resultMatrixes[2],
+                                                                         clusterCenters);
             visualizationModes++;
         }
 
@@ -330,6 +346,39 @@ public class FCMManager implements ClusteringDelegate{
                 {
                     binaryClusters[j].putPixel(iterator.getX(), iterator.getY(), 255);
                 }
+            }
+        }
+
+        for (int i = 0; i < nClusters; i++)
+        {
+            dest.addSlice("", binaryClusters[i]);
+        }
+
+        return dest;
+    }
+
+   private ImageStack encodeClusteredImageFuzzyStack(VectorProcessor vp,
+                                                      float [][] clusterMemberships,
+                                                      float [][] clusterCenters){
+
+        final ImageStack dest = new ImageStack(vp.getWidth(), vp.getHeight());
+        final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
+        final int nClusters = clusterCenters.length;
+
+        ByteProcessor[] binaryClusters = new ByteProcessor[nClusters];
+        for (int i = 0; i < nClusters; i++)
+        {
+            binaryClusters[i] = new ByteProcessor(vp.getWidth(), vp.getHeight());
+        }
+
+        while (iterator.hasNext())
+        {
+            final float[] v = iterator.next();
+            for (int j = 0; j < nClusters; j++)
+            {
+                float inverseValue = 1.0f - clusterMemberships[iterator.getOffset()][j];
+                int grayValue = (int) (inverseValue * 255);
+                binaryClusters[j].putPixel(iterator.getX(), iterator.getY(), grayValue);
             }
         }
 
@@ -561,8 +610,10 @@ public class FCMManager implements ClusteringDelegate{
         String csvMessage = nIteration
                                 + "," + errorJ + "," + errorU + "," + errorV + "\n";
 
-        RAF.writeBytes(csvMessage);
-
+        if (RAF != null)
+        {
+            RAF.writeBytes(csvMessage);
+        }
     }
 
 }

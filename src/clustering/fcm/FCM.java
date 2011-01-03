@@ -8,8 +8,6 @@ package clustering.fcm;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -28,12 +26,13 @@ public class FCM {
         float [][] V = new float[k][X[0].length];
         float [][] U = new float [X.length][k];
 
-//        V = initializeClusterCenterMatrix(X, V, k, randomSeed, initMode, delegate);
-//        //U = computeClusterMembership(X, U, V, k);
         initializeMatrixes(X, V, U, k, randomSeed, initMode, m);
 
-        Object[] matrixes = clusterize(X, U, V, k, tolerance, delegate, m);
-        matrixes[0] = defuzzyfyClusterMemberships((float [][])matrixes[0]);
+        Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, m);
+        Object[] matrixes = new Object[3];
+        matrixes[0] = defuzzyfyClusterMemberships((float [][])clusteredMatrixes[0]);
+        matrixes[1] = clusteredMatrixes[1];
+        matrixes[2] = clusteredMatrixes[0];
         return matrixes;
     }
 
@@ -529,7 +528,7 @@ public class FCM {
 
         float diffJ, diffU, diffV;
 
-        final int iterations = 300;
+        final int iterations = 500;
 
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
 
