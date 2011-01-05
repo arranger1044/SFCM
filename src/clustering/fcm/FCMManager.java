@@ -42,8 +42,13 @@ public class FCMManager implements ClusteringDelegate{
    private boolean printOnConsole = false;
    private float fuzzyness = 2.0f;
    private boolean fuzzyStackVisualization = false;
+   private long maxIterations = 400;
+   private static final String[] stopCriterions = { "Frobenius Norm on U",
+                                                   "Frobenius Norm on V", "Max Norm on U", "Max Norm on V"};
+   private String stopCriterion = "Max Norm on U";
 
    private RandomAccessFile RAF = null;
+   private boolean testing = false;
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -166,6 +171,34 @@ public class FCMManager implements ClusteringDelegate{
        return tolerance > 0;
    }
 
+   public long getMaxIterations(){
+       return maxIterations;
+   }
+
+   public void setMaxIterations(long iterations){
+       maxIterations = iterations;
+   }
+
+   public String getStopCriterion(){
+       return stopCriterion;
+   }
+   
+   public String[] getStopCriterions(){
+       return stopCriterions;
+   }
+   
+   public void setStopCriterion(String criterion){
+       stopCriterion = criterion;
+   }
+
+   public boolean isTesting(){
+       return testing;
+   }
+
+   public void setTesting(boolean test){
+       testing = test;
+   }
+
    public ImageStack[] run(ImagePlus img)
     {
         ImageStack[] imgArray = null;
@@ -182,12 +215,13 @@ public class FCMManager implements ClusteringDelegate{
         float [][] imageData = vp.getPixels();
 
         int initMode = computeInitializationMode();
+        int stopCrit = computeStopCriterion();
 
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = FCM.run(imageData, numberOfClusters, tolerance,
                                              randomizationSeed, initMode, this,
-                                             fuzzyness);
+                                             fuzzyness, maxIterations, stopCrit, testing);
         final long endTime = System.currentTimeMillis();
         final String message = "Clustering completed in " + (endTime - startTime) + " ms.";
         updateStatus(message);
@@ -293,8 +327,27 @@ public class FCMManager implements ClusteringDelegate{
        return vp;
    }
 
+   private int computeStopCriterion(){
 
-    private int computeInitializationMode(){
+       int stopCrit = -1;
+
+       for (int i = 0; i < stopCriterions.length; i++)
+       {
+           if(stopCriterion.equals(stopCriterions[i]))
+           {
+               stopCrit = i;
+           }
+       }
+
+       if(stopCrit == -1)
+       {
+          throw new IllegalArgumentException("Invalid Stop Criterion");
+       }
+
+       return stopCrit;
+   }
+
+   private int computeInitializationMode(){
 
         int initMode = -1;
 
@@ -306,7 +359,8 @@ public class FCMManager implements ClusteringDelegate{
             }
         }
 
-        if (initMode == -1){
+        if (initMode == -1)
+        {
             throw new IllegalArgumentException("Invalid Initialization Mode");
         }
         return initMode;

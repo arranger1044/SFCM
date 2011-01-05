@@ -21,14 +21,16 @@ public class FCM {
     public static Object[] run (float [][] X, int k, double tolerance,
                                 int randomSeed, int initMode,
                                 ClusteringDelegate delegate,
-                                float m){
+                                float m, long iterations, int stopCriterion,
+                                boolean testing){
 
         float [][] V = new float[k][X[0].length];
         float [][] U = new float [X.length][k];
 
         initializeMatrixes(X, V, U, k, randomSeed, initMode, m);
 
-        Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, m);
+        Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, 
+                                                m, iterations, stopCriterion, testing);
         Object[] matrixes = new Object[3];
         matrixes[0] = defuzzyfyClusterMemberships((float [][])clusteredMatrixes[0]);
         matrixes[1] = clusteredMatrixes[1];
@@ -271,12 +273,13 @@ public class FCM {
         return Math.sqrt(sum);
     }
 
-    private static float [][] euclideanDistanceMatrix(final float [][] A, final float [][] B, float [][] D){
+    private static float [][] euclideanDistanceMatrix(final float [][] A, final float [][] B, 
+                                                            float [][] D){
 
         if (D == null)
         {
             System.out.println("Distance Matrix allocated");
-            D = new float[A.length][B.length];
+            D = new float[A.length][B.length + 1];
         }
         int nDims = A[0].length;
 
@@ -291,7 +294,8 @@ public class FCM {
                     sum += d * d;
                 }
 
-                D[i][j] = (float)Math.sqrt(sum);
+                //D[i][j] = (float)Math.sqrt(sum);
+                D[i][j] = (float)sum;
                 //System.out.println("D"+ i + j + " " + D[i][j]);
             }
         }
@@ -361,7 +365,8 @@ public class FCM {
                             //float thisDistance = euclideanDistance(i,k, D);
                             float thisDistance = D[i][k];
 
-                            sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
+                            //sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
+                            sumTerms += Math.pow(num / thisDistance, (1f / (m - 1f)));
 //                            if (thisDistance == 0.0f)
 //                            {
 //                                System.out.println("Ouch " + i + " " + k + " " + j + " " +
@@ -379,6 +384,8 @@ public class FCM {
 //                    }
                         }
 
+                        //sumTerms = (float)(Math.pow(num, (1f / (m - 1f)))) / D[i][V.length];
+                        //System.out.println(D[i][V.length] + " " + sumTerms + " " + (float)(Math.pow(num, (1f / (m - 1f)))));
                         U[i][j] = (1f / sumTerms);
                     }
                     else
@@ -510,9 +517,33 @@ public class FCM {
         return max;
     }
 
+    private static float checkConvergence(float [][] U, float [][] oldU,
+                                          float [][] V, float [][] oldV, int criterion){
+        float diff = 0;
+
+        switch(criterion)
+        {
+            case 0:
+                diff = frobeniusNorm(U, oldU);
+                break;
+            case 1:
+                diff = frobeniusNorm(V, oldV);
+                break;
+            case 2:
+                diff = maxNorm(U, oldU);
+                break;
+            case 3:
+                diff = maxNorm(V, oldV);
+                break;
+            default:
+                break;
+        }
+        return diff;
+    }
+
     private static Object[] clusterize(float [][] X, float [][] U, float [][] V,
                                        int k, double tolerance, ClusteringDelegate delegate,
-                                       float m){
+                                       float m, long iterations, int stopCriterion, boolean testing){
         boolean converged = false;
         long count = 0;
 
@@ -526,13 +557,10 @@ public class FCM {
         float [][] oldU = new float [U.length][k];
         float [][] oldV = new float [V.length][nFeatures];
 
-        float diffJ, diffU, diffV;
-
-        final int iterations = 400;
-
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
+        float distance = Float.MAX_VALUE;
 
-        while (count < iterations)
+        while (count < iterations && distance > tolerance)
         {
 
             V = updateClusterCenterMatrix(X, Um, V);
@@ -543,13 +571,7 @@ public class FCM {
 
             Um = computeExponentialMembership(U, Um, m);
 
-            float newJ = computeObjectiveFunction(X, Um, V, D);
-
-            diffJ = Math.abs(newJ - oldJ);
-//            diffU = frobeniusNorm(U, oldU);
-//            diffV = frobeniusNorm(V, oldV);
-            diffU = maxNorm(U, oldU);
-            diffV = maxNorm(V, oldV);
+            distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
 
 //            if (diffJ < tolerance)
 //            {
@@ -557,17 +579,33 @@ public class FCM {
 //            }
 //            else
 //            {
-                oldJ = newJ;
-                matrixCopy(U, oldU);
-                matrixCopy(V, oldV);
+            matrixCopy(U, oldU);
+            matrixCopy(V, oldV);
 //            }
 
             ++count;
-            try {
+
+            if (testing)
+            {
+                float diffJ, diffU, diffV;
+                float newJ = computeObjectiveFunction(X, Um, V, D);
+                diffJ = Math.abs(newJ - oldJ);
+                oldJ = newJ;
+                diffU = maxNorm(U, oldU);
+                diffV = maxNorm(V, oldV);
+                try
+                {
                 //delegate.updateStatus(null, null, count, diffJ);
-                delegate.updateStatus(null, null, count, diffJ, diffU, diffV);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                    delegate.updateStatus(null, null, count, diffJ, diffU, diffV);
+                }
+                catch (IOException ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
+            else
+            {
+                delegate.updateStatus(null, null, count, distance);
             }
 
         }

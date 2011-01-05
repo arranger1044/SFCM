@@ -56,6 +56,7 @@ public class TestManager extends junit.framework.TestCase{
                         int randomSeed, String initmode){
 
             FCMManager fcmmInstance = new FCMManager();
+            fcmmInstance.setTesting(true);
             fcmmInstance.setNumberOfClusters(c);
             fcmmInstance.setFuzzyness(m);
             fcmmInstance.setRandomizationSeed(randomSeed);

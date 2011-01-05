@@ -200,6 +200,8 @@ public class FCMPlugin implements PlugIn{
     private GenericDialog configureDialog(FCMManager FCMM, GenericDialog dialog){
 
         dialog.addNumericField("Number_of_clusters", FCMM.getNumberOfClusters(), 0);
+        dialog.addNumericField("Max_number_of_iterations", FCMM.getMaxIterations(), 0);
+        dialog.addChoice("Stop_criterion", FCMM.getStopCriterions(), FCMM.getStopCriterion());
         dialog.addNumericField("Tolerance_threshold", FCMM.getTolerance(), 8);
         dialog.addChoice("Initialization Mode", FCMM.getInitModes(), FCMM.getInizializationMode());
 //        dialog.addCheckbox("Random_clusters_initialization", FCMM.getRandomInitialization());
@@ -217,6 +219,8 @@ public class FCMPlugin implements PlugIn{
 
     private void getConfigurationFromDialog(GenericDialog dialog, FCMManager FCMM){
         FCMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
+        FCMM.setMaxIterations((long)Math.round(dialog.getNextNumber()));
+        FCMM.setStopCriterion(dialog.getNextChoice());
         FCMM.setTolerance((float) dialog.getNextNumber());
         FCMM.setInitializationMode(dialog.getNextChoice());
 //        FCMM.setRandomInitialization(dialog.getNextBoolean());
