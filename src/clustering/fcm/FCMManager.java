@@ -152,6 +152,20 @@ public class FCMManager implements ClusteringDelegate{
        fuzzyStackVisualization = visualization;
    }
 
+   public boolean validateFuzzyness(){
+       boolean validFuzzyness = (fuzzyness > 1f);
+
+       return validFuzzyness;
+   }
+
+   public boolean validateClusterNumber(){
+       return  numberOfClusters > 1;
+   }
+
+   public boolean validateTolerance(){
+       return tolerance > 0;
+   }
+
    public ImageStack[] run(ImagePlus img)
     {
         ImageStack[] imgArray = null;

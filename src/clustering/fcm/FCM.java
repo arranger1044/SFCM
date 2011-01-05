@@ -528,7 +528,7 @@ public class FCM {
 
         float diffJ, diffU, diffV;
 
-        final int iterations = 500;
+        final int iterations = 400;
 
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
 
@@ -546,10 +546,10 @@ public class FCM {
             float newJ = computeObjectiveFunction(X, Um, V, D);
 
             diffJ = Math.abs(newJ - oldJ);
-            diffU = frobeniusNorm(U, oldU);
-            diffV = frobeniusNorm(V, oldV);
-//            diffU = maxNorm(U, oldU);
-//            diffV = maxNorm(V, oldV);
+//            diffU = frobeniusNorm(U, oldU);
+//            diffV = frobeniusNorm(V, oldV);
+            diffU = maxNorm(U, oldU);
+            diffV = maxNorm(V, oldV);
 
 //            if (diffJ < tolerance)
 //            {

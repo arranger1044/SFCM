@@ -75,6 +75,14 @@ public class FCMPlugin implements PlugIn{
         /* Configuring the KMeansManager */
         getConfigurationFromDialog(configDialog, FCMM);
 
+        /* validate input parameters */
+        String validParameters = validateInputParameters(FCMM);
+        if(validParameters != null)
+        {
+            IJ.error(TITLE, validParameters);
+            return;
+        }
+
         /* Validate the correct color space conversion */
         if (!validateColorSpace(imp, FCMM.getColorSpace()))
         {
@@ -109,23 +117,7 @@ public class FCMPlugin implements PlugIn{
             }
             else if (IP.getClass() == ij.process.FloatProcessor.class)
             {
-//                final boolean doScaling = ImageConverter.getDoScaling();
-//                try
-//                {
-//                    ImageConverter.setDoScaling(false);
-//                    r = new ImagePlus("Clusters", imgArray[i]);
-//                    final StackConverter stackConverter = new StackConverter(r);
-//                    stackConverter.convertToGray8();
-//                    final ImageConverter imageConverter = new ImageConverter(r);
-//                    imageConverter.convertRGBStackToRGB();
-//
-//                }
-//                finally
-//                {
-//                    ImageConverter.setDoScaling(doScaling);
-//                }
                 r = encodeRGBImageFromStack(imp.getType(), imgArray[i]);
-
             }
             else
             {
@@ -171,10 +163,44 @@ public class FCMPlugin implements PlugIn{
         return validColorSpace;
     }
 
+    private String validateInputParameters(FCMManager FCMM){
+        
+        String errorMessage = null;
+
+        if (!FCMM.validateFuzzyness())
+        {
+            errorMessage = "Invalid Fuzzyness value!";
+        }
+        if (!FCMM.validateClusterNumber())
+        {
+            if (errorMessage != null)
+            {
+                errorMessage += "\nInvalid Number of Clusters!";
+            }
+            else
+            {
+                errorMessage = "\nInvalid Number of Clusters!";
+            }
+        }
+        if (!FCMM.validateTolerance())
+        {
+            if (errorMessage != null)
+            {
+                errorMessage += "\nInvalid Tolerance value!";
+            }
+            else
+            {
+                errorMessage = "\nInvalid Tolerance value!";
+            }
+        }
+
+        return errorMessage;
+    }
+
     private GenericDialog configureDialog(FCMManager FCMM, GenericDialog dialog){
 
         dialog.addNumericField("Number_of_clusters", FCMM.getNumberOfClusters(), 0);
-        dialog.addNumericField("Cluster_center_tolerance", FCMM.getTolerance(), 8);
+        dialog.addNumericField("Tolerance_threshold", FCMM.getTolerance(), 8);
         dialog.addChoice("Initialization Mode", FCMM.getInitModes(), FCMM.getInizializationMode());
 //        dialog.addCheckbox("Random_clusters_initialization", FCMM.getRandomInitialization());
 //        dialog.addCheckbox("KMeans++_clusters_initialization", FCMM.getKMeansPlusPlusInitialization());
