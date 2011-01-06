@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Image/J Plugins
+  ~ Copyright (C) 2002-2010 Jarek Sacha
+  ~ Author's email: jsacha at users dot sourceforge dot net
+  ~
+  ~ This library is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU Lesser General Public
+  ~ License as published by the Free Software Foundation; either
+  ~ version 2.1 of the License, or (at your option) any later version.
+  ~
+  ~ This library is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this library; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~
+  ~ Latest release available at http://sourceforge.net/projects/ij-plugins/
+  -->
+
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<project name="ij-plugins_Toolkit" default="default" basedir=".">
+    <description>Builds, tests, and runs the project ij-plugins_Toolkit.</description>
+    <import file="nbproject/build-impl.xml"/>
+    <!--
+
+    There exist several targets which are by default empty and which can be 
+    used for execution of your tasks. These targets are usually executed 
+    before and after some main targets. They are: 
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported 
+    nbproject/build-impl.xml file. 
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are: 
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project 
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="ij-plugins_Toolkit-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on 
+    the compile target as the regular run target does. Again, for a list of available 
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file. 
+
+    -->
+
+    <target name="-post-init">
+        <!-- Package name and version -->
+        <property name="package.name" value="ij-plugins_toolkit"/>
+        <property name="package.version" value="1.5.2"/>
+
+        <property name="sandbox.dir" value="sandbox"/>
+        <property name="plugins.dir" value="${sandbox.dir}/plugins"/>
+
+        <fileset id="resource.files"
+                 dir="${src.dir}">
+            <include name="**/*.png"/>
+            <include name="**/*.gif"/>
+        </fileset>
+
+        <fileset id="library.files"
+                 dir="lib">
+            <include name="**/binding-*.jar"/>
+            <include name="**/commons-beanutils-core-*.jar"/>
+            <include name="**/commons-logging-*.jar"/>
+        </fileset>
+
+        <!-- SVN setup -->
+        <property name="svn.repository" value="https://ij-plugins.svn.sourceforge.net/svnroot/ij-plugins"/>
+        <property name="svn.module" value="ij-plugins"/>
+        <property name="checkout.dir" location="${build.dir}/checkout"/>
+        <!-- path to the svnant libraries. Usually they will be located in ANT_HOME/lib -->
+        <property name="svnant.lib.dir" location="../vendor/svnant/lib"/>
+        <path id="svnant.classpath">
+            <fileset dir="${svnant.lib.dir}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+        <!-- load the svn task -->
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="svnant.classpath"/>
+
+        <!-- Create the time stamp -->
+        <tstamp/>
+
+        <mkdir dir="${sandbox.dir}"/>
+        <mkdir dir="${plugins.dir}"/>
+    </target>
+
+
+    <target name="-post-clean">
+        <delete dir="${sandbox.dir}"/>
+    </target>
+
+
+    <target name="run" description="Run ImageJ with plugins" depends="setup-plugins">
+        <java dir="${sandbox.dir}" classname="ij.ImageJ" classpath="${run.classpath}" fork="true"/>
+    </target>
+
+
+    <target name="setup-plugins" depends="jar" description="Prepare plugins for testing with ImageJ">
+        <copy file="${dist.jar}" todir="${plugins.dir}"/>
+        <copy todir="${plugins.dir}">
+            <fileset dir="lib" excludes="**/ij.jar"/>
+        </copy>
+    </target>
+
+
+    <target name="jar-all" depends="jar"
+            description="Create plugins' JAR with all dependencies">
+
+        <!-- Create library jar -->
+        <jar destfile="${jar.dir}/${package.name}.jar"
+             basedir="${build.classes.dir}"
+             compress="true">
+            <fileset refid="resource.files"/>
+            <zipgroupfileset refid="library.files"/>
+            <manifest>
+                <attribute name="Implementation-Version" value="${package.version}"/>
+            </manifest>
+        </jar>
+    </target>
+
+
+    <!-- Build distribution from current content of SVN -->
+    <target name="dist-from-svn" depends="init" description="Distribution from SVN">
+
+        <property name="svn.dir" location="${checkout.dir}/${svn.module}"/>
+
+        <!-- ................... -->
+        <!-- Source distribution -->
+        <!-- ................... -->
+        <!-- Cleanup SVN checkout directory -->
+        <delete dir="${svn.dir}"/>
+
+        <!-- Fresh checkout from SVN -->
+        <echo message="SVN ROOT: ${svn.repository}"/>
+        <antcall target="checkout" inheritall="false">
+            <param name="svn.dir" value="${svn.dir}"/>
+        </antcall>
+
+        <!-- Get revision number for checked out source -->
+        <echo message="svn.dir = ${svn.dir}"/>
+        <svn>
+            <status path="${svn.dir}" revisionProperty="svn.revision"/>
+        </svn>
+
+        <!--Copy dependencies-->
+        <!--<mkdir dir="${svn.dir}/lib"/>-->
+        <!--<copy file="${ij.jar}" todir="${svn.dir}/lib"/>-->
+        <!--<copy file="${license.file}" todir="${svn.dir}"/>-->
+
+        <!-- ZIP source -->
+        <mkdir dir="${dist.dir}"/>
+        <zip basedir="${svn.dir}"
+             destfile="${dist.dir}/${package.name}_src_${package.version}_r${svn.revision}_${DSTAMP}.zip"/>
+
+        <!-- ................................................... -->
+        <!-- Run tests                                           -->
+        <!-- ................................................... -->
+        <ant antfile="${svn.dir}/build.xml" target="test" inheritall="false">
+            <property name="svnant.lib.dir" location="${svnant.lib.dir}"/>
+        </ant>
+
+        <!-- ................................................... -->
+        <!-- Binary distribution from actual distribution source -->
+        <!-- ................................................... -->
+        <ant antfile="${svn.dir}/build.xml" target="jar-all" inheritall="false">
+            <property name="jar.dir" location="${dist.dir}"/>
+            <property name="svnant.lib.dir" location="${svnant.lib.dir}"/>
+        </ant>
+
+        <!--<ant antfile="${svn.dir}/build.xml" target="jar-nodep" inheritall="false">-->
+        <!--<property name="jar.dir" location="${base.dir}/dist"/>-->
+        <!--<property name="svnant.lib.dir" location="${svnant.lib.dir}"/>-->
+        <!--</ant>-->
+
+        <!-- ZIP binaries -->
+        <zip basedir="${dist.dir}"
+             includes="${package.name}.jar"
+             destfile="${dist.dir}/${package.name}_bin_${package.version}_r${svn.revision}_${DSTAMP}.zip"/>
+
+        <!--<zip basedir="${base.dir}/dist"-->
+        <!--includes="${package.name}-nodep.jar"-->
+        <!--destfile="${dist.dir}/${package.name}-nodep_bin_${package.version}_r${svn.revision}_${DSTAMP}.zip"/>-->
+
+        <!-- ................................................... -->
+        <!-- Binary distribution from actual distribution source -->
+        <!-- ................................................... -->
+        <ant antfile="${svn.dir}/build.xml" target="javadoc" inheritall="false">
+            <property name="dist.javadoc.dir" location="${dist.dir}/javadoc"/>
+            <property name="svnant.lib.dir" location="${svnant.lib.dir}"/>
+        </ant>
+
+        <!-- ZIP javadoc -->
+        <zip basedir="${dist.dir}/javadoc"
+             includes="*"
+             destfile="${dist.dir}/${package.name}_javadoc_${package.version}_r${svn.revision}_${DSTAMP}.zip"/>
+
+    </target>
+
+    <!-- Checkout sources from SVN repository -->
+    <target name="checkout"
+            depends="init">
+        <property name="svnant.latest.url" value="${svn.repository}/trunk/${svn.module}/"/>
+        <!--<property name="svnant.this.url"   url="${svn.repository}/tags/${svn.module}/${svnant.version}/"/>-->
+        <property name="svnant.repository.user" value="guest"/>
+        <property name="svnant.repository.passwd" value=""/>
+
+        <!-- Checkout latest sources -->
+        <mkdir dir="${svn.dir}"/>
+        <!--<svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">-->
+        <!--<checkout url="${svnant.latest.url}" revision="HEAD" destPath="${svn.dir}"/>-->
+        <!--</svn>-->
+        <exec executable="svn">
+            <arg value="checkout"/>
+            <arg value="${svnant.latest.url}"/>
+            <arg value="${svn.dir}"/>
+        </exec>
+    </target>
+
+</project>
