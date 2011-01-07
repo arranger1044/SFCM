@@ -56,6 +56,7 @@ public class FCM {
                 break;
             case 1:
                 V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                //printMatrix(V);
                 D = euclideanDistanceMatrix(X, V, D);
                 //printMatrix(D);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
@@ -279,7 +280,7 @@ public class FCM {
         if (D == null)
         {
             System.out.println("Distance Matrix allocated");
-            D = new float[A.length][B.length + 1];
+            D = new float[A.length][B.length];
         }
         int nDims = A[0].length;
 
@@ -352,6 +353,8 @@ public class FCM {
 
         for(int i = 0; i < X.length; i++)
         {
+            int count = 0;
+
             for(int j = 0; j < V.length; j++)
             {
                     //float num = euclideanDistance(i, j, D);
@@ -390,6 +393,7 @@ public class FCM {
                     }
                     else
                     {
+                        count++;
 //                        float sum = 0;
 //                        for (int h = 0; h < V.length; h++)
 //                        {
@@ -404,7 +408,18 @@ public class FCM {
                     {
                         throw new IllegalArgumentException("Nan found " + " m " + m);
                     }
-             }
+            }
+
+            if (count > 0)
+            {
+                for(int j = 0; j < V.length; j++)
+                {
+                    if (U[i][j] == 1.0f)
+                    {
+                        U[i][j] = 1f / count;
+                    }
+                }
+            }
         }
         return U;
 
@@ -579,8 +594,7 @@ public class FCM {
 //            }
 //            else
 //            {
-            matrixCopy(U, oldU);
-            matrixCopy(V, oldV);
+
 //            }
 
             ++count;
@@ -607,6 +621,9 @@ public class FCM {
             {
                 delegate.updateStatus(null, null, count, distance);
             }
+
+            matrixCopy(U, oldU);
+            matrixCopy(V, oldV);
 
         }
 
