@@ -40,7 +40,7 @@ public class FCMManager implements ClusteringDelegate{
    private String colorSpace = "None";
    private int imageType;
    private boolean printOnConsole = false;
-   private float fuzzyness = 2.0f;
+   private double fuzzyness = 2.0f;
    private boolean fuzzyStackVisualization = false;
    private long maxIterations = 400;
    private static final String[] stopCriterions = { "Frobenius Norm on U",
@@ -137,11 +137,11 @@ public class FCMManager implements ClusteringDelegate{
        colorSpace = space;
    }
 
-   public float getFuzzyness(){
+   public double getFuzzyness(){
        return fuzzyness;
    }
 
-   public void setFuzzyness(float m){
+   public void setFuzzyness(double m){
        fuzzyness = m;
    }
 
@@ -433,10 +433,10 @@ public class FCMManager implements ClusteringDelegate{
         final VectorProcessor.PixelIterator iterator = vp.pixelIterator();
         final int nClusters = clusterCenters.length;
 
-        ByteProcessor[] binaryClusters = new ByteProcessor[nClusters];
+        ByteProcessor[] fuzzyClusters = new ByteProcessor[nClusters];
         for (int i = 0; i < nClusters; i++)
         {
-            binaryClusters[i] = new ByteProcessor(vp.getWidth(), vp.getHeight());
+            fuzzyClusters[i] = new ByteProcessor(vp.getWidth(), vp.getHeight());
         }
 
         while (iterator.hasNext())
@@ -445,14 +445,14 @@ public class FCMManager implements ClusteringDelegate{
             for (int j = 0; j < nClusters; j++)
             {
                 float inverseValue = 1.0f - clusterMemberships[iterator.getOffset()][j];
-                int grayValue = (int) (inverseValue * 255);
-                binaryClusters[j].putPixel(iterator.getX(), iterator.getY(), grayValue);
+                float grayValue = (int) (inverseValue * 255);
+                fuzzyClusters[j].setf(iterator.getX(), iterator.getY(), grayValue);
             }
         }
 
         for (int i = 0; i < nClusters; i++)
         {
-            dest.addSlice("", binaryClusters[i]);
+            dest.addSlice("Fuzzy", fuzzyClusters[i]);
         }
 
         return dest;

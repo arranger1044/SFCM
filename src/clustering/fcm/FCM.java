@@ -21,7 +21,7 @@ public class FCM {
     public static Object[] run (float [][] X, int k, double tolerance,
                                 int randomSeed, int initMode,
                                 ClusteringDelegate delegate,
-                                float m, long iterations, int stopCriterion,
+                                double m, long iterations, int stopCriterion,
                                 boolean testing){
 
         float [][] V = new float[k][X[0].length];
@@ -41,25 +41,26 @@ public class FCM {
     private static Object [] initializeMatrixes(float [][] X, float [][] V, 
                                                 float [][] U, int k, 
                                                 int randomSeed, int initMode,
-                                                float m){
+                                                double m){
         
         Object[] initedMatrixes = new Object[2];
-        float [][] D = null;
+        double [][] D = null;
 
         switch(initMode)
         {
             case 0:
                 V = randomInitialization(X, V, k, randomSeed);
-                D = euclideanDistanceMatrix(X, V, D);
+                D = euclideanDistanceMatrix(X, V, D, m);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
                 System.out.println("Random V");
                 break;
             case 1:
                 V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
                 //printMatrix(V);
-                D = euclideanDistanceMatrix(X, V, D);
+                D = euclideanDistanceMatrix(X, V, D, m);
                 //printMatrix(D);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
+                System.out.println("\n\nU\n\n");
                 //printMatrix(U);
                 System.out.println("K-Means++");
                 
@@ -106,6 +107,17 @@ public class FCM {
     }
 
     private static void printMatrix(float [][] A){
+        for (int i = 0; i < A.length; i++)
+        {
+            for (int j = 0; j < A[0].length; j ++)
+            {
+                System.out.print(A[i][j] + " ");
+            }
+            System.out.println("");
+        }
+    }
+
+    private static void printMatrix(double [][] A){
         for (int i = 0; i < A.length; i++)
         {
             for (int j = 0; j < A[0].length; j ++)
@@ -274,18 +286,21 @@ public class FCM {
         return Math.sqrt(sum);
     }
 
-    private static float [][] euclideanDistanceMatrix(final float [][] A, final float [][] B, 
-                                                            float [][] D){
+    private static double [][] euclideanDistanceMatrix(final float [][] A, final float [][] B,
+                                                            double [][] D, double m){
 
         if (D == null)
         {
             System.out.println("Distance Matrix allocated");
-            D = new float[A.length][B.length];
+            D = new double[A.length][B.length + 1];
         }
+
+        double exp = (1 / (m - 1));
         int nDims = A[0].length;
 
         for (int i = 0; i < A.length; i++)
         {
+            D[i][B.length] = 0.0;
             for (int j = 0; j < B.length; j++)
             {
                 double sum = 0;
@@ -296,8 +311,19 @@ public class FCM {
                 }
 
                 //D[i][j] = (float)Math.sqrt(sum);
-                D[i][j] = (float)sum;
+                D[i][j] = sum;
                 //System.out.println("D"+ i + j + " " + D[i][j]);
+                if (D[i][j] == 0.0)
+                {
+                    D[i][B.length] = -1;
+                }
+                else
+                {
+                    if (D[i][B.length] != -1)
+                    {
+                        D[i][B.length] += Math.pow(1 / D[i][j], exp);
+                    }
+                }
             }
         }
         return D;
@@ -308,7 +334,7 @@ public class FCM {
 //        return D[a][b];
 //    }
 
-    private static float [][] computeExponentialMembership(float [][] U, float [][] Um, float m){
+    private static float [][] computeExponentialMembership(float [][] U, float [][] Um, double m){
 
         int nClusters = U[0].length;
         if (Um == null)
@@ -328,10 +354,10 @@ public class FCM {
                 }
             }
         }
-        return U;
+        return Um;
     }
 
-    private static float computeObjectiveFunction(float [][] X, float [][] Um, float [][]V, float [][] D){
+    private static float computeObjectiveFunction(float [][] X, float [][] Um, float [][]V, double [][] D){
 
         float objF = 0;
         for(int i = 0; i < X.length; i++)
@@ -339,7 +365,7 @@ public class FCM {
              for(int j = 0; j < V.length; j++)
                {
                 //float distancePixelToCluster = euclideanDistance(i, j, D);
-                float distancePixelToCluster = D[i][j];
+                double distancePixelToCluster = D[i][j];
                 //System.out.println("Distance " + distancePixelToCluster);
                 objF += distancePixelToCluster * Um[i][j];
                 //System.out.println("obj " + objF);
@@ -349,47 +375,66 @@ public class FCM {
     }
 
     private static float[][] updateClusterMembershipMatrix(float [][] X, float [][] U, float [][] V,
-                                                           float m, float [][] D){
+                                                           double m, double [][] D){
 
+        int nClusters = V.length;
+        double exp = (1.0 / (m - 1.0));
         for(int i = 0; i < X.length; i++)
         {
             int count = 0;
 
-            for(int j = 0; j < V.length; j++)
+            for(int j = 0; j < nClusters; j++)
             {
                     //float num = euclideanDistance(i, j, D);
-                    float num = D[i][j];
-                    if(num != 0.0f)
+                    double distance = D[i][j];
+                    if(distance != 0.0)
                     {
-                                            //  sum of distances from this data point to all clusters.
-                        float sumTerms = 0;
-                        for(int k = 0; k < V.length; k++)
+//                                            //  sum of distances from this data point to all clusters.
+//                        float sumTerms = 0;
+//                        for(int k = 0; k < V.length; k++)
+//                        {
+//                            //float thisDistance = euclideanDistance(i,k, D);
+//                            float thisDistance = D[i][k];
+//
+//                            //sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
+//                            sumTerms += Math.pow(num / thisDistance, (1f / (m - 1f)));
+////                            if (thisDistance == 0.0f)
+////                            {
+////                                System.out.println("Ouch " + i + " " + k + " " + j + " " +
+////                                        Math.pow(num / thisDistance, (2f / (m - 1f))));
+////                            }
+//
+////                                             if ( Float.isNaN(thisDistance))
+////                    {
+////                        throw new IllegalArgumentException("thisDistance"+ num + " m " + m);
+////                    }
+////                                             if ( Float.isNaN(sumTerms))
+////                    {
+////                        throw new IllegalArgumentException("sumterms "+ thisDistance + "
+////                            d " + num+ " j " + j + " k " + k);
+////                    }
+//                        }
+//
+//                        //sumTerms = (float)(Math.pow(num, (1f / (m - 1f)))) / D[i][V.length];
+//                        //System.out.println(D[i][V.length] + " " + sumTerms + " " + (float)(Math.pow(num, (1f / (m - 1f)))));
+//                        U[i][j] = (1f / sumTerms);
+                        double denominator = D[i][nClusters];
+                        if (denominator != -1)
                         {
-                            //float thisDistance = euclideanDistance(i,k, D);
-                            float thisDistance = D[i][k];
-
-                            //sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
-                            sumTerms += Math.pow(num / thisDistance, (1f / (m - 1f)));
-//                            if (thisDistance == 0.0f)
-//                            {
-//                                System.out.println("Ouch " + i + " " + k + " " + j + " " +
-//                                        Math.pow(num / thisDistance, (2f / (m - 1f))));
-//                            }
-
-//                                             if ( Float.isNaN(thisDistance))
-//                    {
-//                        throw new IllegalArgumentException("thisDistance"+ num + " m " + m);
-//                    }
-//                                             if ( Float.isNaN(sumTerms))
-//                    {
-//                        throw new IllegalArgumentException("sumterms "+ thisDistance + "
-//                            d " + num+ " j " + j + " k " + k);
-//                    }
+                            
+                            double numerator = Math.pow(distance, exp);
+                            //U[i][j] = 1 / (numerator / denominator);
+                            U[i][j] = (float) (1f / (numerator * denominator));
+                            if ( Float.isNaN(U[i][j]))
+                            {
+                                throw new IllegalArgumentException("Nan found " + " m " + m + " num " + numerator
+                                        + " den " + denominator + " dis " + distance + " exp " + exp);
+                            }
                         }
-
-                        //sumTerms = (float)(Math.pow(num, (1f / (m - 1f)))) / D[i][V.length];
-                        //System.out.println(D[i][V.length] + " " + sumTerms + " " + (float)(Math.pow(num, (1f / (m - 1f)))));
-                        U[i][j] = (1f / sumTerms);
+                        else
+                        {
+                            U[i][j] = 0;
+                        }
                     }
                     else
                     {
@@ -410,7 +455,7 @@ public class FCM {
                     }
             }
 
-            if (count > 0)
+            if (count > 1)
             {
                 for(int j = 0; j < V.length; j++)
                 {
@@ -428,8 +473,8 @@ public class FCM {
     private static float[][] updateClusterCenterMatrix(float [][] X, float [][] Um, float [][] V){
 
 
-        float numerator = 0;
-        float denominator = 0;
+        double numerator = 0;
+        double denominator = 0;
 
         int nClusters = V.length;
         int nFeatures = X[0].length;
@@ -451,11 +496,11 @@ public class FCM {
                     //System.out.println("N " + numerator + " D " + denominator);
                 }
                 /// cluster x caratteristiche. ovvero V
-                V[i][j] = numerator/denominator;
-                                    if ( Float.isNaN(V[i][j]))
-                    {
-                        throw new IllegalArgumentException("nume "+ numerator + " denom " + denominator);
-                    }
+                V[i][j] = (float) (numerator / denominator);
+                if ( Float.isNaN(V[i][j]))
+                {
+                    throw new IllegalArgumentException("nume "+ numerator + " denom " + denominator);
+                }
                 //System.out.println("V" + i + j + "n " + numerator + " d " + denominator  );
             }
         }
@@ -558,16 +603,18 @@ public class FCM {
 
     private static Object[] clusterize(float [][] X, float [][] U, float [][] V,
                                        int k, double tolerance, ClusteringDelegate delegate,
-                                       float m, long iterations, int stopCriterion, boolean testing){
+                                       double m, long iterations, int stopCriterion, boolean testing){
         boolean converged = false;
         long count = 0;
 
         Object[] resultMatrixes = new Object[2];
         final int nFeatures = X[0].length;
         
-        float [][] D = null;
+        double [][] D = null;
         float [][] Um = null;
         Um = computeExponentialMembership(U, Um, m);
+        System.out.println("\n\nUM\n\n");
+        //printMatrix(Um);
 
         float [][] oldU = new float [U.length][k];
         float [][] oldV = new float [V.length][nFeatures];
@@ -575,18 +622,31 @@ public class FCM {
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
         float distance = Float.MAX_VALUE;
 
-        while (count < iterations && distance > tolerance)
+        while (count < iterations /*&& distance > tolerance*/)
         {
 
             V = updateClusterCenterMatrix(X, Um, V);
 
-            D = euclideanDistanceMatrix(X, V, D);
+//            if (count < 2){
+//                System.out.println("\n\nV\n\n " + count);
+//                printMatrix(V);
+//            }
+
+            D = euclideanDistanceMatrix(X, V, D, m);
+//            if (count < 2){
+//                System.out.println("\n\nD\n\n " + count);
+//                printMatrix(D);
+//            }
             
             U = updateClusterMembershipMatrix(X, U, V, m, D);
+//            if (count < 2){
+//                System.out.println("\n\nU\n\n " + count);
+//                printMatrix(U);
+//            }
 
             Um = computeExponentialMembership(U, Um, m);
 
-            distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
+            //distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
 
 //            if (diffJ < tolerance)
 //            {

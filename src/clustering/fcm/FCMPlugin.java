@@ -117,7 +117,9 @@ public class FCMPlugin implements PlugIn{
             }
             else if (IP.getClass() == ij.process.FloatProcessor.class)
             {
+
                 r = encodeRGBImageFromStack(imp.getType(), imgArray[i]);
+
             }
             else
             {
@@ -219,14 +221,14 @@ public class FCMPlugin implements PlugIn{
 
     private void getConfigurationFromDialog(GenericDialog dialog, FCMManager FCMM){
         FCMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
-        FCMM.setMaxIterations((long)Math.round(dialog.getNextNumber()));
+        FCMM.setMaxIterations(Math.round(dialog.getNextNumber()));
         FCMM.setStopCriterion(dialog.getNextChoice());
         FCMM.setTolerance((float) dialog.getNextNumber());
         FCMM.setInitializationMode(dialog.getNextChoice());
 //        FCMM.setRandomInitialization(dialog.getNextBoolean());
 //        FCMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
         FCMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
-        FCMM.setFuzzyness((float)dialog.getNextNumber());
+        FCMM.setFuzzyness(dialog.getNextNumber());
         FCMM.setColorSpace(dialog.getNextChoice());
         FCMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());
         FCMM.setRandomRGBVisualization(dialog.getNextBoolean());
