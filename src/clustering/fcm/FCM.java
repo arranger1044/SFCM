@@ -418,17 +418,17 @@ public class FCM {
 //                        //sumTerms = (float)(Math.pow(num, (1f / (m - 1f)))) / D[i][V.length];
 //                        //System.out.println(D[i][V.length] + " " + sumTerms + " " + (float)(Math.pow(num, (1f / (m - 1f)))));
 //                        U[i][j] = (1f / sumTerms);
-                        double denominator = D[i][nClusters];
-                        if (denominator != -1)
+                        double denominatorSum = D[i][nClusters];
+                        if (denominatorSum != -1)
                         {
                             
                             double numerator = Math.pow(distance, exp);
                             //U[i][j] = 1 / (numerator / denominator);
-                            U[i][j] = (float) (1f / (numerator * denominator));
+                            U[i][j] = (float) (1f / (numerator * denominatorSum));
                             if ( Float.isNaN(U[i][j]))
                             {
                                 throw new IllegalArgumentException("Nan found " + " m " + m + " num " + numerator
-                                        + " den " + denominator + " dis " + distance + " exp " + exp);
+                                        + " den " + denominatorSum + " dis " + distance + " exp " + exp);
                             }
                         }
                         else
@@ -622,7 +622,7 @@ public class FCM {
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
         float distance = Float.MAX_VALUE;
 
-        while (count < iterations /*&& distance > tolerance*/)
+        while (count < iterations && distance > tolerance)
         {
 
             V = updateClusterCenterMatrix(X, Um, V);
@@ -646,7 +646,7 @@ public class FCM {
 
             Um = computeExponentialMembership(U, Um, m);
 
-            //distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
+            distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
 
 //            if (diffJ < tolerance)
 //            {
