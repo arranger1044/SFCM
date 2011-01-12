@@ -705,61 +705,6 @@ public class SFCM {
         return U;
     }
 
-    private static float functionH(float [][] U, int r ,int row, int col,
-                                   int cluster, int rows, int cols,
-                                   int spatialFunctionType){
-        
-        float h = 0;
-
-        for(int riga = -r; riga <= r; riga++)
-        {
-
-            int y = row + riga;
-
-                if (y >= 0 && y < rows)
-                {
-
-                    for (int k = -r; k <= r; k++)
-                    {
-
-                        int x = col + k;
-                        
-
-                        if (x >= 0 && x < cols)
-                        {
-
-                            int elem = x + y * cols;
-                            //int elem = y + x * rows;
-                            
-                            if(spatialFunctionType == 0)
-                            {
-                                h += U[elem][cluster];
-                            }
-                            else
-                            {
-
-                                boolean flag = false;
-                                for(int i = 0; i < U[0].length; i++)
-                                {
-                                    if(U[elem][cluster] < U[elem][i])
-                                    {
-                                        flag = true;
-                                    }
-                                }
-
-                                if(flag == false)
-                                h += 1;
-
-                            }
-                        }
-
-                    }
-                }
-        }
-
-        return h;
-    }
-
     private static int [][] precomputeMatrixForm(int offset, int width){
         int [][] matrixForm = new int [offset][2];
         for (int i = 0; i < offset; i++)
@@ -840,8 +785,11 @@ public class SFCM {
 //                printMatrix(U);
 //            }
 
-            U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction, 
+            if ((r != 0) && (p != 1.0 || q != 0.0))
+            {
+                U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction,
                                                         width, xy, offset, uPhQ);
+            }
 
             Um = computeExponentialMembership(U, Um, m);
 
