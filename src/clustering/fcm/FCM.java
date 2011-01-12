@@ -616,8 +616,17 @@ public class FCM {
         System.out.println("\n\nUM\n\n");
         //printMatrix(Um);
 
-        float [][] oldU = new float [U.length][k];
-        float [][] oldV = new float [V.length][nFeatures];
+        float [][] oldU = null;
+        if (stopCriterion == 0 || stopCriterion == 2)
+        {
+            oldU = new float [U.length][k];
+        }
+
+        float [][] oldV = null;
+        if (stopCriterion == 1 || stopCriterion == 3)
+        {
+            oldV = new float [V.length][nFeatures];
+        }
 
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
         float distance = Float.MAX_VALUE;
@@ -646,7 +655,11 @@ public class FCM {
 
             Um = computeExponentialMembership(U, Um, m);
 
-            distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
+            if (!testing)
+            {
+                distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
+            }
+            
 
 //            if (diffJ < tolerance)
 //            {
@@ -682,8 +695,16 @@ public class FCM {
                 delegate.updateStatus(null, null, count, distance);
             }
 
-            matrixCopy(U, oldU);
-            matrixCopy(V, oldV);
+            if (stopCriterion == 0 || stopCriterion == 2)
+            {
+                matrixCopy(U, oldU);
+            }
+
+            if (stopCriterion == 1 || stopCriterion == 3)
+            {
+                matrixCopy(V, oldV);
+            }
+            
 
         }
 
