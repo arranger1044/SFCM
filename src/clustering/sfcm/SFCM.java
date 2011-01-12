@@ -608,37 +608,100 @@ public class SFCM {
     private static float [][] updateMembershipsWithSpatialInformation(float [][] U, int r,
                                                                       double p, double q,
                                                                       int spatialFunctionType,
-                                                                      int cols){
+                                                                      int cols, int [][] xy,
+                                                                      int [][] offset,
+                                                                      double [][] uPhQ){
 
-        float[][] Uupdate = new float[U.length][U[0].length];
+        //float[][] Uupdate = new float[U.length][U[0].length];
+        int nClusters = U[0].length;
+        if(uPhQ == null)
+        {
+            uPhQ = new double[U.length][nClusters + 1];
+        }
+
         int rows = U.length / cols;
 
         for(int i = 0; i < U.length; i++)
         {
-            float numerator = 0;
+            double numerator = 0;
+            uPhQ[i][nClusters] = 0;
 
-            for(int j = 0; j < U[0].length; j++)
+            for(int j = 0; j < nClusters; j++)
             {
 
-                int row = i / cols;
-                int col = i - row * cols;
+                int row = xy[i][0];
+                int col = xy[i][1];
+                float h = 0;
 
-                numerator = (float) ((Math.pow(U[i][j], p)) *
-                        Math.pow(functionH(U,r,row,col,j,rows,cols,spatialFunctionType), q));
-
-                float denominator = 0;
-
-                for (int k = 0; k < U[0].length; k++)
+                for(int ry = -r; ry <= r; ry++)
                 {
-                    denominator += ((Math.pow(U[i][k], p)) *
-                            (Math.pow(functionH(U,r,row,col,k,rows,cols,spatialFunctionType), q)));
+                    int y = row + ry;
+                    if (y >= 0 && y < rows)
+                    {
+                        for (int rx = -r; rx <= r; rx++)
+                        {
+                            int x = col + rx;
+                            if (x >= 0 && x < cols)
+                            {
+                                int elem = offset[y][x];
+
+                                if(spatialFunctionType == 0)
+                                {
+                                    h += U[elem][j];
+                                }
+                                else
+                                {
+                                    boolean exit = false;
+                                    for(int k = 0; k < nClusters && !exit; k++)
+                                    {
+                                        if(U[elem][j] < U[elem][k])
+                                        {
+                                            exit = true;
+                                        }
+                                    }
+
+                                    if(exit == false)
+                                    {
+                                        h += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
-                Uupdate[i][j] = numerator / denominator;
+                double uPTimeshQ = Math.pow(U[i][j], p) *
+                                   Math.pow(h, q);
+                uPhQ[i][j] = uPTimeshQ;
+                uPhQ[i][nClusters] += uPTimeshQ;
+
+//                int row = i / cols;
+//                int col = i - row * cols;
+//
+//                numerator = (float) ((Math.pow(U[i][j], p)) *
+//                        Math.pow(functionH(U, r, row, col, j, rows, cols, spatialFunctionType), q));
+//
+//                float denominator = 0;
+//
+//                for (int k = 0; k < U[0].length; k++)
+//                {
+//                    denominator += ((Math.pow(U[i][k], p)) *
+//                            (Math.pow(functionH(U, r, row, col, k, rows, cols, spatialFunctionType), q)));
+//                }
+//
+//                Uupdate[i][j] = numerator / denominator;
             }
         }
 
-        U = Uupdate;
+        for(int i = 0; i < U.length; i++)
+        {
+            double denominatorSum = uPhQ[i][nClusters];
+            for(int j = 0; j < nClusters; j++)
+            {
+                U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
+            }
+        }
+        //U = Uupdate;
         return U;
     }
 
@@ -648,7 +711,7 @@ public class SFCM {
         
         float h = 0;
 
-        for(int riga = -r; riga < r; riga++)
+        for(int riga = -r; riga <= r; riga++)
         {
 
             int y = row + riga;
@@ -656,15 +719,18 @@ public class SFCM {
                 if (y >= 0 && y < rows)
                 {
 
-                    for (int k = -r; k < r; k++)
+                    for (int k = -r; k <= r; k++)
                     {
 
                         int x = col + k;
-                        int elem = x + y*rows ;  // ?? nn so se √® cos√¨;
+                        
 
                         if (x >= 0 && x < cols)
                         {
 
+                            int elem = x + y * cols;
+                            //int elem = y + x * rows;
+                            
                             if(spatialFunctionType == 0)
                             {
                                 h += U[elem][cluster];
@@ -694,6 +760,28 @@ public class SFCM {
         return h;
     }
 
+    private static int [][] precomputeMatrixForm(int offset, int width){
+        int [][] matrixForm = new int [offset][2];
+        for (int i = 0; i < offset; i++)
+        {
+            matrixForm[i][0] = i / width;
+            matrixForm[i][1] = i - matrixForm[i][0] * width;
+        }
+        return matrixForm;
+    }
+
+    private static int [][] precomputeArrayForm(int rows, int columns){
+        int [][] arrayForm = new int [rows][columns];
+        for(int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                arrayForm[i][j] = j + i * columns;
+            }
+        }
+        return arrayForm;
+    }
+
     private static Object[] clusterize(float [][] X, float [][] U, float [][] V,
                                        int k, double tolerance, ClusteringDelegate delegate,
                                        double m, long iterations, int stopCriterion,
@@ -710,6 +798,10 @@ public class SFCM {
         Um = computeExponentialMembership(U, Um, m);
         System.out.println("\n\nUM\n\n");
         //printMatrix(Um);
+
+        int [][] xy = precomputeMatrixForm(X.length, width);
+        int [][] offset = precomputeArrayForm(X.length / width, width);
+        double [][] uPhQ = null;
 
         float [][] oldU = null;
         if (stopCriterion == 0 || stopCriterion == 2)
@@ -748,7 +840,8 @@ public class SFCM {
 //                printMatrix(U);
 //            }
 
-            U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction, width);
+            U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction, 
+                                                        width, xy, offset, uPhQ);
 
             Um = computeExponentialMembership(U, Um, m);
 
