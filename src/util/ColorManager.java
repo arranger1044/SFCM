@@ -8,13 +8,21 @@ package util;
 import java.util.Random;
 
 /**
- *
- * @author valerio
+ * Provides some random color generators, used in SFCMManager to display
+ * the clustered image. Implements the Singleton pattern
+ * @see SFCMManager
  */
 public class ColorManager {
 
+    /**
+     * ColorManager shall not be instantiated
+     */
     private ColorManager(){}
 
+    /**
+     * Generates a random color in the RGB color space
+     * @return an integer array representing the rgb components of the generated color
+     */
     static public int [] randomRGBColor(){
         
         Random rnd = new Random();
@@ -30,6 +38,13 @@ public class ColorManager {
         return color;
     }
 
+    /**
+     * Generates a random color in the RGB color space using a mixing color to
+     * blend the hues
+     * @param mixingColor an integer array representing the rgb components of
+     * the mixing color
+     * @return an integer array representing the rgb components of the generated color
+     */
     static public int [] randomMixedRGBColor(int [] mixingColor){
 
         Random rnd = new Random();

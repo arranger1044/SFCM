@@ -125,6 +125,7 @@ public class VectorProcessor {
 
 
     /**
+     * Public getter for the processor width
      * @return width of the image.
      */
     public int getWidth() {
@@ -133,6 +134,7 @@ public class VectorProcessor {
 
 
     /**
+     * Public getter for the processor height
      * @return height of the image.
      */
     public int getHeight() {
@@ -141,6 +143,7 @@ public class VectorProcessor {
 
 
     /**
+     * Public getter for the number of features of the processor
      * @return number of values at each pixel in the image.
      */
     public int getNumberOfValues() {
@@ -149,7 +152,8 @@ public class VectorProcessor {
 
 
     /**
-     * Gives direct access to pixel values in the image first index is the pixel number (between 0
+     * Gives direct access to pixel values in the image.
+     * The first index is the pixel number (between 0
      * and width*height-1), the second index references within each pixel value.
      *
      * @return reference to the array containing pixel values in the image.
@@ -160,6 +164,7 @@ public class VectorProcessor {
 
 
     /**
+     * Public getter to the roi internal reference
      * @return region of interest within the image.
      */
     public Rectangle getRoi() {
@@ -168,7 +173,8 @@ public class VectorProcessor {
 
 
     /**
-     * @param roi new ROI.
+     * Public setter of the internal roi reference
+     * @param roi new ROI to be set
      * @see #getRoi()
      */
     public void setRoi(final Rectangle roi) {
@@ -176,18 +182,28 @@ public class VectorProcessor {
     }
 
 
+    /**
+     * Returns the progress bar reference
+     * @return
+     */
     public ProgressBar getProgressBar() {
         return progressBar;
     }
 
 
+    /**
+     * Sets the progress bar reference
+     * @param progressBar a reference to a @link{ProgressBar}
+     */
     public void setProgressBar(final ProgressBar progressBar) {
         this.progressBar = progressBar;
     }
 
 
     /**
+     * Returns an iterator through the pixels in the processor
      * @return pixel value iterator.
+     * @see PixelIterator
      */
     public PixelIterator pixelIterator() {
         return new VectorProcessor.PixelIterator();
@@ -195,7 +211,10 @@ public class VectorProcessor {
 
 
     /**
+     * returns an interator for a 3x4 Neighborhood for the pixels in the processor
      * @return pixel value iterator.
+     * @see Neighborhood3x3
+     * @see Iterator
      */
     public Iterator iterator() {
         return new VectorProcessor.Iterator();
@@ -465,7 +484,7 @@ public class VectorProcessor {
 
 
         /**
-         *
+         * Returns whether there is another pixel to iterate through
          * @return a boolean that tells if there are more pixel to iterate through
          */
         @Override
@@ -475,7 +494,7 @@ public class VectorProcessor {
 
 
         /**
-         *
+         * Returns the next pixel to iterate through
          * @return the next pixel value represented ad a float array (its features)
          */
         @Override

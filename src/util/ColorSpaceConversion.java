@@ -333,6 +333,13 @@ public final class ColorSpaceConversion {
         return cp;
     }
 
+    /**
+     * Converts a CIE L*a*b* float matrix into a RGB float matrix
+     * @param labDataMatrix a float matrix (pixels x lab) to convert
+     * @return a float matrix (pixels x rgb)
+     * @see #labToXYZ(float[], float[])
+     * @see #xyzToRGB(float[], float[])
+     */
     public static float [][] labToRGBMatrix(final float [][] labDataMatrix){
 
         float [][] rgbDataMatrix = new float [labDataMatrix.length][3];
@@ -344,7 +351,7 @@ public final class ColorSpaceConversion {
             final float[] pixel = labDataMatrix[i];
             ColorSpaceConversion.labToXYZ(pixel, tmpXYZ);
             ColorSpaceConversion.xyzToRGB(tmpXYZ, tmpRGB);
-            System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
+            //System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
             System.arraycopy(tmpRGB, 0, rgbDataMatrix[i], 0, 3);
         }
 
@@ -393,6 +400,12 @@ public final class ColorSpaceConversion {
         return cp;
     }
 
+    /**
+     * Converts a XYZ float matrix into a RGB float matrix
+     * @param xyzDataMatrix a float data matrix (pixels x xyz)
+     * @return a float matrix (pixels x rgb)
+     * @see #xyzToRGB(float[], float[])
+     */
     public static float [][] xyzToRGBMatrix(float [][] xyzDataMatrix){
         float [][] rgbDataMatrix = new float [xyzDataMatrix.length][3];
         final float[] tmpRGB = new float[3];
@@ -400,15 +413,21 @@ public final class ColorSpaceConversion {
         for (int i = 0; i < xyzDataMatrix.length; i++){
 
             final float[] pixel = xyzDataMatrix[i];
-            System.out.println("XYZ " + pixel[0] + " " + pixel[1] + " " + pixel[2]);
+            //System.out.println("XYZ " + pixel[0] + " " + pixel[1] + " " + pixel[2]);
             ColorSpaceConversion.xyzToRGB(pixel, tmpRGB);
-            System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
+            //System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
             System.arraycopy(tmpRGB, 0, rgbDataMatrix[i], 0, 3);
         }
 
         return rgbDataMatrix;
     }
 
+    /**
+     * Converts a HSB float matrix into a RGB float matrix
+     * @param hsbDataMatrix a float matrix (pixels x hsb)
+     * @return a float matrix (pixels x rgb)
+     * @see Color.HSBtoRGB(float , float, float)
+     */
     public static float [][] hsbToRGBMatrix(float [][] hsbDataMatrix){
         float [][] rgbDataMatrix = new float [hsbDataMatrix.length][3];
         float[] tmpRGB = new float[3];
@@ -419,14 +438,14 @@ public final class ColorSpaceConversion {
             pixel[0] /= 255f;
             pixel[1] /= 255f;
             pixel[2] /= 255f;
-            System.out.println("HSB " + pixel[0] + " " + pixel[1] + " " + pixel[2]);
+            //System.out.println("HSB " + pixel[0] + " " + pixel[1] + " " + pixel[2]);
             int rgb = Color.HSBtoRGB(pixel[0], pixel[1], pixel[2]);
             Color rgbC = new Color(rgb);
             tmpRGB = rgbC.getRGBColorComponents(tmpRGB);
             tmpRGB[0] *= 255f;
             tmpRGB[1] *= 255f;
             tmpRGB[2] *= 255f;
-            System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
+            //System.out.println("RGB " + tmpRGB[0] + " " + tmpRGB[1] + " " + tmpRGB[2]);
             System.arraycopy(tmpRGB, 0, rgbDataMatrix[i], 0, 3);
         }
 
