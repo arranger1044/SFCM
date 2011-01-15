@@ -10,14 +10,73 @@ import java.util.HashSet;
 import java.util.Random;
 
 /**
- *
- * @author valerio
+ * This class encapsulate the Spatial Fuzzy C-Means as proposed in: <i>Chuang,
+ * Tzeng, Chen Fuzzy c-means clustering with spatial information for image
+ * segmentation. Computerized Medical Imaging and Graphics 30 (2006) 9–15</i>.
+ * It implements the Singleton pattern and provides as the only public class
+ * method @link{#run}. It also implements the delegation pattern, being free from
+ * ImageJ API it can be  more easily reused
  */
 public class SFCM {
 
+    /**
+     * The class constructor is private in order to prevent the class from being
+     * instantiated
+     */
     private SFCM(){
     }
 
+    /**
+     * The only one method that is visible to the other classes,
+     * it is used for start of the algorithm: it inizializaes the matrixes U and V,
+     * run the SFCM on them and then pack them in an Object array that returns
+     * to the caller.
+     * <p>
+     * @param X data matrix, a samples x features matrix
+     * @param k number of clusters
+     * @param tolerance threashold used for checking the convergence of the algorithm
+     * @param randomSeed the randomization seed used for generating random numbers
+     * @param initMode an integer that specifies the initialization mode for the
+     * matrixes <code>U</code> and <code>V</code>.
+     * <b>0</b> - firstly initializes the centroid matrix <code>V</code>
+     * randomly <i>E. Forgy,
+     * “Cluster Analysis of Multivariate Data: Effi- ciency vs. Interpretability
+     * of Classification,” Biometrics, vol. 21, pp. 768, 1965<i/>.
+     * <b>1</b> - Firstly initializes the centroid matrix <code>V</code> accoding to the
+     * <i>K-Means++</i> criterion @link{http://en.wikipedia.org/wiki/K-means++}
+     * <b>2</b> - Firstly initializes the cluster membership matrix <code>U</code> randomly
+     * @param delegate is the object which is delegate to output partial results
+     * of the algorithm.
+     * @param m is the fuzzyness parameter
+     * @param iterations is the max number of iterations possible for the algorithm
+     * @param stopCriterion is an integer representing one of the possible stop criterions:
+     * <b>0</b> - it computes the Frobenius norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one from the last iteration
+     * <b>1</b> - it computes the Frobenius norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one from the last iteration
+     * <b>2</b> - it computes the max norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one from the last iteration
+     * <b>3</b> - it computes the max norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one from the last iteration
+     * @param r is the radius of the window used to compute the spatial information
+     * @param p is the weight for the membership values
+     * @param q is the weight for the chosen spatial function <code>h</code>
+     * @param spatialFunction is an integer representing the choosen spatial function:
+     * <b>0</b> - Computes the spatial function as the sum of the membership values
+     * for the samples in the neighborhood according to the same cluster
+     * <b>1</b> - Computes the spatial function as the number of clusters membership
+     * in the neighborhood that are the greatest value for the neighbor according to
+     * that cluster
+     * @param width the width of the matrix form, as the samples can be viewed when
+     * computing the neightborhood for each one
+     * @param testing  a boolean value that tells whether the algorithm is run for testing
+     * @return a vector of object that has three elements: a defuzzyfied memberhip matrix,
+     * the cluster centroid matrix and the cluster membership matrix
+     *
+     * @see SFCMManager.run()
+     * @see ClusteringDelegate
+     * @see #defuzzyfyClusterMemberships(float[][])
+     */
     public static Object[] run (float [][] X, int k, double tolerance,
                                 int randomSeed, int initMode,
                                 ClusteringDelegate delegate,
@@ -42,6 +101,33 @@ public class SFCM {
         return matrixes;
     }
 
+    /**
+     * This method initialize the matrixes <code>U</code> and <code>V</code> according
+     * with the initialization mode specified.
+     * @param X data matrix
+     * @param V cluster center matrix to be initialized
+     * @param U cluster membership matrix to be initialized
+     * @param k number of clusters
+     * @param randomSeed randomization seed used to generate a random sequence
+     * @param initMode an integer that specifies the initialization mode for the
+     * matrixes <code>U</code> and <code>V</code>.
+     * <b>0</b> - firstly initializes the centroid matrix <code>V</code>
+     * randomly <i>E. Forgy,
+     * “Cluster Analysis of Multivariate Data: Effi- ciency vs. Interpretability
+     * of Classification,” Biometrics, vol. 21, pp. 768, 1965<i/>.
+     * <b>1</b> - Firstly initializes the centroid matrix <code>V</code> accoding to the
+     * <i>K-Means++</i> criterion @link{http://en.wikipedia.org/wiki/K-means++}
+     * <b>2</b> - Firstly initializes the cluster membership matrix <code>U</code> randomly
+     * @param delegate is the object which is delegate to output partial results
+     * of the algorithm.
+     * @param m the fuzziness parameter
+     * @return an Object array which containes the initialized <code>U</code>
+     * and <code>V</code> matrixes
+     * @see #randomInitialization(float[][], float[][], int, int)
+     * @see #updateClusterMembershipMatrix(float[][], float[][], float[][], double, double[][])
+     * @see #kMeansPlusPlusInitialization(float[][], float[][], int, int)
+     * @see #initializeClusterMembershipRandom(float[][], int, int)
+     */
     private static Object [] initializeMatrixes(float [][] X, float [][] V, 
                                                 float [][] U, int k, 
                                                 int randomSeed, int initMode,
@@ -76,40 +162,17 @@ public class SFCM {
             default:
                 break;
         }
+
+        initedMatrixes[0] = U;
+        initedMatrixes[1] = V;
         return initedMatrixes;
     }
 
-    private static float [][] initializeClusterCenterMatrix(float [][] X,
-                                                            float [][] V,
-                                                            int k,
-                                                            int randomSeed,
-                                                            int initMode,
-                                                            ClusteringDelegate delegate){
 
-        final long startTime = System.currentTimeMillis();
-
-        switch(initMode)
-        {
-            case 0:
-                V = randomInitialization(X, V, k, randomSeed);
-                System.out.println("Random");
-                break;
-            case 1:
-                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
-                System.out.println("K-Means++");
-                break;
-            default:
-                break;
-        }
-
-        final long endTime = System.currentTimeMillis();
-        //System.out.println("Initialization done in " + (endTime - startTime) + "ms");
-        String message = "Initialization done in " + (endTime - startTime) + "ms";
-        delegate.updateStatus(message);
-
-        return V;
-    }
-
+    /**
+     * Utility method for printing a float matrix on console
+     * @param A the matrix to be printed
+     */
     private static void printMatrix(float [][] A){
         for (int i = 0; i < A.length; i++)
         {
@@ -121,6 +184,10 @@ public class SFCM {
         }
     }
 
+    /**
+     * Utility method for printing a double matrix on console
+     * @param A the matrix to be printed
+     */
     private static void printMatrix(double [][] A){
         for (int i = 0; i < A.length; i++)
         {
@@ -132,6 +199,16 @@ public class SFCM {
         }
     }
 
+    /**
+     * Initializes the cluster membership matrix <code>U</code> randomly by generating
+     * random values in [0, 1] and normalizing them in order to have the sum of
+     * membership values for a pixel equal one.
+     * @param U cluster membership matrix to be initialized
+     * @param k number of clusters
+     * @param randomSeed randomization seed used to generate a random sequence
+     * @return the initialized cluster membership matrix
+     * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
+     */
     private static float [][] initializeClusterMembershipRandom(float [][] U, int k, int randomSeed){
 
         int nClusters = U[0].length;
@@ -153,6 +230,16 @@ public class SFCM {
         return U;
     }
 
+    /**
+     * Initializes the cluster center matrix<code>V</code> randomly by selecting
+     * sample from X and checking not to select an already selected sample
+     * @param X data matrix
+     * @param V cluster centroid matrix to be initialized
+     * @param k number of clusters
+     * @param randomSeed randomization seed used to generate a random sequence
+     * @return the initialized cluster matrix
+     * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
+     */
     private static float[][] randomInitialization(float [][] X, float [][] V, int k, int randomSeed) {
 
         final Random random = createRandom(randomSeed);
@@ -178,6 +265,20 @@ public class SFCM {
         return V;
     }
 
+    /**
+     * Initializes the cluster center matrix<code>V</code> according to the
+     * <i>K-means++</i> initialization criterion. The first centroid is selected
+     * randomly from the samples and the remaining ones are selected according
+     * to a weighted probability distribution on the distance from the samples and
+     * the already selected centroids.
+     * @link{http://en.wikipedia.org/wiki/K-means++}
+     * @param X the data matrix
+     * @param V the centroid matrix to be initialized
+     * @param k the number of clusters
+     * @param randomSeed randomization seed used to generate a random sequence
+     * @return the initialized cluster center matrix
+     * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
+     */
     private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
 
         final Random random = createRandom(randomSeed);
@@ -216,7 +317,8 @@ public class SFCM {
             }
 
 
-            /* Add one new data point at random as a new center, using a weighted probability distribution where
+            /* Add one new data point at random as a new center, using a weighted
+             * probability distribution where
              * a point p is chosen with probability proportional to D(p)^2 */
             final double r = random.nextDouble() * sum;
             for (int offset = 0; offset < nbPixels; offset++) {
@@ -239,6 +341,12 @@ public class SFCM {
         return V;
     }
 
+    /**
+     * Creates a <i>Random</i> instance using a seed
+     * @param randomSeed an integer used to generate the Random instance
+     * @return the created instance
+     * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
+     */
     private static Random createRandom(int randomSeed) {
 //        return config.isRandomizationSeedEnabled()
 //                ? new Random(config.getRandomizationSeed())
@@ -247,11 +355,13 @@ public class SFCM {
     }
 
     /**
-     * Return index of the closest cluster to point <code>x</code>.
-     *
-     * @param x              point features.
-     * @param clusterCenters cluster centers features.
+     * Returns the index of the closest cluster to point <code>x</code>.
+     * Called in the K-Means++ initialization of the cluster centers matrix
+     * @param x  a sample as an array of float.
+     * @param clusterCenters cluster centers matrix.
+     * @param k number of clusters
      * @return index of the closest cluster
+     * @see #kMeansPlusPlusInitialization(float[][], float[][], int, int)
      */
     private static int closestCluster(final float[] x, final float[][] clusterCenters, int k) {
 
@@ -274,11 +384,11 @@ public class SFCM {
 
 
     /**
-     * Distance between points <code>a</code> and <code>b</code>.
+     * Euclidean distance  computed between points <code>a</code> and <code>b</code>.
      * This is the squared rooted version
      * @param a first point.
      * @param b second point.
-     * @return distance.
+     * @return the euclidean distance computed.
      */
     private static double euclideanDistance(final float[] a, final float[] b) {
         double sum = 0;
@@ -290,6 +400,20 @@ public class SFCM {
         return Math.sqrt(sum);
     }
 
+    /**
+     * Computes a distance matrix starting from two sample x features matrixes
+     * It is used to precompute all the distances between the samples and the centroids
+     * and it is used to update the cluster membership matrix <code>U</code>:
+     * The distance matrix holds one more column used to precompute the sum of the
+     * inverse exponentiated distances between all the centroids and a sample. In this way
+     * the update rule for the <code>U</code> matrix is more efficiently computed
+     * @param A sample x feature matrix
+     * @param B sample x feature matrix
+     * @param D distance matrix, if null it will be instantiated
+     * @param m fuzzyness parameter
+     * @return the instantiated distance matrix
+     * @see #updateClusterMembershipMatrix(float[][], float[][], float[][], double, double[][])
+     */
     private static double [][] euclideanDistanceMatrix(final float [][] A, final float [][] B,
                                                             double [][] D, double m){
 
@@ -333,11 +457,18 @@ public class SFCM {
         return D;
     }
 
-//    private static float euclideanDistance(final int a, final int b, float [][] D){
-//
-//        return D[a][b];
-//    }
-
+    /**
+     * Computes the exponential memberhip matrix <code>U</code>.
+     * It stores the result in a matrix <code>Um</code> conformed to <code>U</code>.
+     * If the objective function shall be not computed anymore this method can be
+     * deprecated and the the exponentiation computed when necessary in the update
+     * rule for the centroid matrix <code>V</code>
+     * @param U cluster membership matrix
+     * @param Um exponentiated cluster membership matrix, if null it will be instantiated
+     * @param m the fuzzyness parameter
+     * @return the exponentiated Um matrix
+     * @see #updateClusterCenterMatrix(float[][], float[][], float[][])
+     */
     private static float [][] computeExponentialMembership(float [][] U, float [][] Um, double m){
 
         int nClusters = U[0].length;
@@ -361,6 +492,20 @@ public class SFCM {
         return Um;
     }
 
+    /**
+     * Computes the objective function <b>J</b> as proposed in the <i>Fuzzy C-Means</i>
+     * algorithm. It is used as a possible criterion to check the convergence in the
+     * testing mode (when the difference between the current value and the previous
+     * iteration one is sent to the delegate)
+     * @param X the data matrix.
+     * @param Um the exponentiated cluster membership matrix.
+     * @param V the cluster center matrix.
+     * @param D the distance matrix.
+     * @return the value of objective function
+     * @see #clusterize(float[][], float[][], float[][], int,
+     * double, clustering.sfcm.ClusteringDelegate, double, long,
+     * int, int, double, double, int, int, boolean)
+     */
     private static float computeObjectiveFunction(float [][] X, float [][] Um, float [][]V, double [][] D){
 
         float objF = 0;
@@ -378,6 +523,24 @@ public class SFCM {
         return objF;
     }
 
+    /**
+     * Updates the cluster membership matrix <code>U</code> according to the
+     * <i>Fuzzy C-Means</i> algorithm.
+     * Each value of <code>U</code> is updated as the division between the sum of
+     * the exponentiated inverse distances between the sample and all the centroids
+     * and the exponentiated distance between the sample and the current centroid
+     * It uses the precomputed matrix D in order to speed the computation up.
+     * @param X the data matrix
+     * @param U the cluster membership matrix to be updated
+     * @param V the cluster centroid matrix
+     * @param m the fuzzyness parameter used in the exponentiation
+     * @param D the distance matrix with an additional column with precomputed values
+     * @return the updated  cluster membership matrix
+     * @see #clusterize(float[][], float[][], float[][], int, double,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     * @see #euclideanDistanceMatrix(float[][], float[][], double[][], double)
+     */
     private static float[][] updateClusterMembershipMatrix(float [][] X, float [][] U, float [][] V,
                                                            double m, double [][] D){
 
@@ -474,6 +637,22 @@ public class SFCM {
 
     }
 
+    /**
+     * Updates the cluster center matrix <code>V</code> according to the <i>Fuzzy
+     * C-Means</i> algorithm.
+     * Each element of  <code>V</code> is updated considering the sum of the samples
+     * multiplied by their exponentiated membership and normalized against the
+     * sum of the exponentiated memberships.
+     * It uses the already exponentiated matrix <code>Um</code>
+     * @param X data matrix
+     * @param Um exponentiated cluster membership matrix
+     * @param V cluster center matrix to update
+     * @return the updated cluster center matrix
+     * @see #clusterize(float[][], float[][], float[][], int, double,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     * @see #computeExponentialMembership(float[][], float[][], double)
+     */
     private static float[][] updateClusterCenterMatrix(float [][] X, float [][] Um, float [][] V){
 
 
@@ -511,6 +690,17 @@ public class SFCM {
         return V;
     }
 
+    /**
+     * Computes the defuzzyfication of the cluster membership matrix <code>U</code>
+     * by using a max operator on the membership values of a sample against all the
+     * clusters.
+     * It instantiates a new matrix of integers containing only 1 or 0 (hard partition)
+     * @param U the cluster membership matrix
+     * @return the hard partition matrix
+     * @see #run(float[][], int, double, int, int,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     */
     private static int [][] defuzzyfyClusterMemberships(float [][] U){
 
         int nClusters = U[0].length;
@@ -528,15 +718,23 @@ public class SFCM {
                     max = U[i][j];
                     maxPos = j;
                 }
-                
             }
-
             defU[i][maxPos] = 1;
         }
         
         return defU;
     }
 
+    /**
+     * Implements a not shallow copy between two matrixes. It is used to save the
+     * previous iteration matrixes <code>U</code> and <code>V</code>
+     * @param A the source matrix
+     * @param B the destination matrix
+     * @see System.arraycopy
+     * @see #clusterize(float[][], float[][], float[][], int, double,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     */
     private static void matrixCopy(float [][] A, float [][] B){
 
         int nDim = A[0].length;
@@ -546,6 +744,15 @@ public class SFCM {
         }
     }
 
+    /**
+     * Computes the Frobenius norm of the difference matrix between two input matrixes.
+     * They must have the same dimensions.
+     * It is used as a possible criterion to check convergence.
+     * @param A a float matrix
+     * @param B a float matrix
+     * @return the computed  Frobenius norm
+     * @see #checkConvergence(float[][], float[][], float[][], float[][], int)
+     */
     private static float frobeniusNorm(float [][] A, float [][] B){
         
         float d = 0;
@@ -562,6 +769,16 @@ public class SFCM {
         return (float) Math.sqrt(sum);
     }
 
+
+    /**
+     * Computes the max norm of the difference matrix between two input matrixes.
+     * They must have the same dimensions.
+     * It is used as a possible criterion to check convergence.
+     * @param A a float matrix
+     * @param B a float matrix
+     * @return the computed max norm
+     * @see #checkConvergence(float[][], float[][], float[][], float[][], int)
+     */
     private static float maxNorm(float [][] A, float [][] B){
 
         float max = 0;
@@ -581,6 +798,29 @@ public class SFCM {
         return max;
     }
 
+    /**
+     * Checks for the convergence of the algorithm. The stopping criterion is
+     * specified in input.
+     * @param U the cluster membership matrix
+     * @param oldU the previous iteration cluster membership matrix
+     * @param V the cluster center matrix
+     * @param oldV the previous iteration cluster center matrix
+     * @param criterion is an integer representing one of the possible stop criterions:
+     * <b>0</b> - it computes the Frobenius norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one
+     * <b>1</b> - it computes the Frobenius norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one
+     * <b>2</b> - it computes the max norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one
+     * <b>3</b> - it computes the max norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one
+     * @return the computed difference according to the chosen criterion
+     * @see #clusterize(float[][], float[][], float[][], int, double,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     * @see #frobeniusNorm(float[][], float[][])
+     * @see #maxNorm(float[][], float[][]) 
+     */
     private static float checkConvergence(float [][] U, float [][] oldU,
                                           float [][] V, float [][] oldV, int criterion){
         float diff = 0;
@@ -605,6 +845,37 @@ public class SFCM {
         return diff;
     }
 
+    /**
+     * Updates the cluster membership matrix <code>U</code> according to the
+     * <i>Spatial Fuzzy C-Means</i> algorithm implemented. It updates each element of
+     * <code>U</code> by weightening it exponentiating it and multiplying it by the
+     * exponentiation of a spatial function which in determines the weight of the
+     * neighborhood for the current sample.
+     * In order to consider a neighborhood for a sample we reinterpret the sample
+     * set as a matrix and consider a neighbourhood a window of a certain radius
+     * centered on the sample (which is a matrix element).
+     * Different kinds of spatial function are proposed and have to be specified as
+     * input parameters.
+     * @param U the cluster membership matrix to update
+     * @param r the radius of the window representing the neighbourhood for a sample
+     * @param p the exponent used to weight the membership values
+     * @param q the exponent used to weight the spatial function
+     * @param spatialFunctionType an integer representing the choosen spatial function:
+     * <b>0</b> - Computes the spatial function as the sum of the membership values
+     * for the samples in the neighborhood according to the same cluster
+     * <b>1</b> - Computes the spatial function as the number of clusters membership
+     * in the neighborhood that are the greatest value for the neighbor according to
+     * that cluster
+     * @param cols the number of column in the matrix representation of the samples
+     * @param xy an integer matrix used to precompute the matrix indices of the matrix form
+     * @param offset an integer matrix used to precompute the array indices of
+     * the array form of the sample
+     * @param uPhQ a support matrix used to store the computed value of the update
+     * @return the updated cluster membership matrix
+     * @see #clusterize(float[][], float[][], float[][], int, double,
+     * clustering.sfcm.ClusteringDelegate, double, long, int, int, double,
+     * double, int, int, boolean)
+     */
     private static float [][] updateMembershipsWithSpatialInformation(float [][] U, int r,
                                                                       double p, double q,
                                                                       int spatialFunctionType,
@@ -705,6 +976,15 @@ public class SFCM {
         return U;
     }
 
+    /**
+     * Precomputes in a samples x 2 matrix the matrix form indices associated
+     * to each array form indices.
+     * @param offset the number of samples
+     * @param width the number of columns of the matrix form
+     * @return the instantiated precomputed matrix
+     * @see #updateMembershipsWithSpatialInformation(float[][], int, double,
+     * double, int, int, int[][], int[][], double[][])
+     */
     private static int [][] precomputeMatrixForm(int offset, int width){
         int [][] matrixForm = new int [offset][2];
         for (int i = 0; i < offset; i++)
@@ -715,6 +995,15 @@ public class SFCM {
         return matrixForm;
     }
 
+    /**
+     * Precomputes in a rows x columns matrix the array form indices associated
+     * to each pair of matrix form indices.
+     * @param rows the number of rows in matrix form
+     * @param columns the number of columns in matrix form
+     * @return the instantiated and precomputed matrix
+     * @see #updateMembershipsWithSpatialInformation(float[][], int, double,
+     * double, int, int, int[][], int[][], double[][])
+     */
     private static int [][] precomputeArrayForm(int rows, int columns){
         int [][] arrayForm = new int [rows][columns];
         for(int i = 0; i < rows; i++)
@@ -727,6 +1016,53 @@ public class SFCM {
         return arrayForm;
     }
 
+    /**
+     * Clusterize is the main method that orchestrates all the steps of the
+     * <i>Spatial Fuzzy C-Means</i>algorithm.
+     * It updates the cluster center matrix <code>V</code>,
+     * computes the distances between the samples and the cluster centers,
+     * updates the cluster membership matrix <code>U</code>,
+     * and updates it again according to an inputted spatial function
+     * @param X data matrix (samples x features)
+     * @param U clsuter membership matrix (samples x clusters)
+     * @param V cluster centers matrix (clusters x features)
+     * @param k number of clusters
+     * @param tolerance threshold used to check the convergence between iterations
+     * @param delegate the object to which we delegate to update each iteration status
+     * @param m  the fuzzyness parameter
+     * @param iterations the max number of allowed iterations
+     * @param stopCriterion is an integer representing one of the possible stop criterions:
+     * <b>0</b> - it computes the Frobenius norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one from the last iteration
+     * <b>1</b> - it computes the Frobenius norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one from the last iteration
+     * <b>2</b> - it computes the max norm on the difference between the actual
+     * membership matrix <code>U</code> and the previous one from the last iteration
+     * <b>3</b> - it computes the max norm on the difference between the actual
+     * centroid matrix <code>V</code> and the previous one from the last iteration
+     * @param r is the radius of the window representing the neighbourhood for a sample
+     * @param p is the weight for the membership value update
+     * @param q is the weight for the spatial function
+     * @param spatialFunction is an integer representing the choosen spatial function:
+     * <b>0</b> - Computes the spatial function as the sum of the membership values
+     * for the samples in the neighborhood according to the same cluster
+     * <b>1</b> - Computes the spatial function as the number of clusters membership
+     * in the neighborhood that are the greatest value for the neighbor according to
+     * that cluster
+     * @param width the width of the matrix form, as the samples can be viewed when
+     * computing the neightborhood for each one
+     * @param testing a boolean value that tells whether the algorithm is run for testing
+     * @return an array of Objects containing the cluster membership matrix and
+     * the cluster centroid matrix
+     * @see #updateClusterCenterMatrix(float[][], float[][], float[][])
+     * @see #checkConvergence(float[][], float[][], float[][], float[][], int)
+     * @see #computeExponentialMembership(float[][], float[][], double)
+     * @see #euclideanDistanceMatrix(float[][], float[][], double[][], double)
+     * @see #updateClusterMembershipMatrix(float[][], float[][], float[][],
+     * double, double[][])
+     * @see #updateMembershipsWithSpatialInformation(float[][], int, double,
+     * double, int, int, int[][], int[][], double[][])
+     */
     private static Object[] clusterize(float [][] X, float [][] U, float [][] V,
                                        int k, double tolerance, ClusteringDelegate delegate,
                                        double m, long iterations, int stopCriterion,
