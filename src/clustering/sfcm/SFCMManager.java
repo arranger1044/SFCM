@@ -21,9 +21,9 @@ import util.ColorSpaceConversion;
 import vectorLib.VectorProcessor;
 
 /**
- * This class isoletes the Spatial Fuzzy C-Means Algorithm (SFC) making it
- * independentfrom using the ImageJ API. It takes the responsibility to run it
- * and to communicate the resultes to the SFCMPlugin class.
+ * This class isolates the Spatial Fuzzy C-Means Algorithm (SFC) making it
+ * independent from using the ImageJ API. It takes the responsibility to run it
+ * and to communicate the results to the SFCMPlugin class.
  * It also provides a way to encode the input image in a different color space
  * and to decode the clustered image in several ways.
  * The class conforms to the @link{ClusteringDelegate} interface, implementing the
@@ -193,7 +193,14 @@ public class SFCMManager implements ClusteringDelegate{
     * @see TestManager
     */
    private boolean testing = false;
-
+   /**
+    * A boolean indicating if the class has been instantiated in order to run a
+    * Validation test.
+    * Default value is false
+    * @see TestManager
+    * @see ClusteringValidity
+    */
+   private boolean validation = false;
 
    /**
     * Public getter for <code>randomizationSeed</code>
@@ -620,6 +627,14 @@ public class SFCMManager implements ClusteringDelegate{
        spatialFunction = function;
    }
 
+   /**
+    * Public setter for <code>validation</code>
+    * @param a boolean value, true in the case we should run a validation test
+    * @see #validation
+    */
+   public void setValidation(boolean validity){
+        validation = validity;
+   }
 
    /**
     * The main method of the class. It encapsulates the @link{SFCM} <b>run</b>.
@@ -666,6 +681,23 @@ public class SFCMManager implements ClusteringDelegate{
 
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
+
+        if (validation) {
+            float[][] membershipMatrix = (float[][]) resultMatrixes[2];
+            double vpc = ClusteringValidity.bezdekPartitionCoefficient(membershipMatrix);
+            double vpe = ClusteringValidity.partitionEntropyIndex(membershipMatrix);
+            double vxb = ClusteringValidity.compactnessAndSeparationMetric(imageData,
+                    membershipMatrix,
+                    clusterCenters,
+                    fuzzyness);
+            try {
+                testingValidation(fuzzyness, membershipWeight, spatialFunctionWeight, 
+                        windowRadius, initializationMode, spatialFunction,
+                        numberOfClusters, colorSpace, vpc, vpe, vxb);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
 
         Object[] stacks = new Object[5];
         //imgArray = new ImageStack[4];
@@ -730,7 +762,7 @@ public class SFCMManager implements ClusteringDelegate{
     * To convert the color space it calls some utility methods from
     * @link{ColorSpaceConversion}.
     * @param imp the image to convert
-    * @param colorSpace the string spaecifying the color space for the conversion.
+    * @param colorSpace the string specifying the color space for the conversion.
     * Allowed values are: "<b>None</b>", "<b>XYZ</b>", "<b>L*a*b*</b>", "<b>HSB</b>"
     * @return a VectorProcessor representing the converted image
     * @see ColorSpaceConversion
@@ -977,7 +1009,7 @@ public class SFCMManager implements ClusteringDelegate{
      * @param vp the original image as a @link{VectorProcessor}
      * @param clusterMemberships the cluster membership matrix
      * @param clusterCenters the cluster center matrix
-     * @param mixingColor an optional color for mixing the random colo sequence
+     * @param mixingColor an optional color for mixing the random color sequence
      * @param randomizationSeed an integer used to generate the random colors
      * @return a @link{ColorProcessor} encoding the clustered image
      * @see ColorManager
@@ -1238,7 +1270,7 @@ public class SFCMManager implements ClusteringDelegate{
     /**
      * Implements the ClusteringDelegate method of the same signature.
      * Updates the ImageJ status showing a message containing the algorithm
-     * updated status and informatrion on the matrixes and the iteration errors
+     * updated status and information on the matrixes and the iteration errors
      * obtained by checking the convergence. Optionally displays the message on
      * the system console and writes the results on a file if testing
      * @param V the optional cluster center matrix (not used)
@@ -1270,6 +1302,37 @@ public class SFCMManager implements ClusteringDelegate{
         {
             RAF.writeBytes(csvMessage);
         }
+    }
+
+    /**
+     * Writes on the <code>RAF</code> file the sequence of parameters when a validation
+     * test is run after the @link{SFCM} algorithm finished.
+     * @param m the fuzzyness value used
+     * @param p the membership weight value used
+     * @param q the spatial function weight value used
+     * @param rad the window radius used
+     * @param init the initialization criterion used
+     * @param spatialFunction the spatial function chosen
+     * @param k the used number of cluster
+     * @param colorSpace the color space used
+     * @param vpc the partition coefficient computed for validating the algorithm
+     * @param vpe the partition entropy value computed for validation
+     * @param vxb the xie and benn's index computed for validation
+     * @throws IOException an exception if it it not posisble to write on the file
+     * @see #RAF
+     * @see #validation
+     * @see #run
+     * @see #TestManager
+     * @see ClusterValidity
+     */
+    public void testingValidation(double m, double p, double q, int rad, String init,
+                                  String spatialFunction, int k, String colorSpace,
+                                  double vpc, double vpe, double vxb) throws IOException {
+        final String message = k + "," + m + "," + p + "," + q + "," + rad + ","
+                + init + "," + spatialFunction + "," + colorSpace + ","
+                + vpc + "," + vpe + "," + vxb + "\n";
+
+        RAF.writeBytes(message);
     }
 
 }

@@ -15,29 +15,53 @@ import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 
 /**
- *
- * @author valerio
+ * This class communicates with the user by implementing the ImageJ PlugIn interface
+ * It provides an graphical user interface to let the user configure the parameters
+ * of the @link{SFCM} algorithm. Then, it configure the @{SFCMManager} instance
+ * that will run the algorithm and in the end will display the resulted images
+ * encoded by the manager instance.
+ * @see SFCM
+ * @see SFCMManager
+ * @see #run(java.lang.String) 
  */
 public class SFCMPlugin implements PlugIn{
 
+    /**
+     * The title of the resulting window
+     */
     public static final String RESULTS_WINDOW_TITLE = " Spatial Fuzzy C-Means cluster centers";
-
-    private static boolean showCentroidImage;
-    private static boolean sendToResultTable;
-
-    private static final boolean APPLY_LUT = false;
-    private static final boolean AUTO_BRIGHTNESS = true;
-
-
+    /**
+     * The title displayed by the plugin
+     */
     private static final String TITLE = "Spatial Fuzzy C-Means Clustering";
+    /**
+     * The plugin <b>about</b> message
+     */
     private static final String ABOUT = "" +
             "Spatial Fuzzy C-Means in ImageJ, built upon the k-means plugin found" +
             " in the ij-plugin-toolkit";
-
-    /* Creating an array of illegal Image types */
+    /**
+     * An array of illegal Image types
+     */
     private static final int[] illegalImages = {ImagePlus.COLOR_256};
+    /**
+     * The instance of the @link{SFCMManager}
+     */
     private SFCMManager sFCMM;
 
+    /**
+     *  Overridden method of the one provided by the @link{PlugIn} interface in ImageJ
+     *  It takes the currently selected image, validates the image,
+     *  validates the user inputs and instantiates the @link{SFCMManager} class
+     *  which manages to run the @link{SFCM} algorithm, in the end it presents
+     *  the clustered images to the user according to the selected visualization method.
+     *  @param arg an optional string used to determine if the plugin is run for
+     *  the <b>about</b> help
+     *  @see #validateColorSpace(ij.ImagePlus, java.lang.String)
+     *  @see #validateImage(ij.ImagePlus)
+     *  @see #validateInputParameters(clustering.sfcm.SFCMManager)
+     *  @see #configureDialog(clustering.sfcm.SFCMManager, ij.gui.GenericDialog)
+     */
     @Override
     public void run(String arg) {
 
@@ -111,7 +135,6 @@ public class SFCMPlugin implements PlugIn{
             //System.out.println("class " + IP.getClass());
             if (IP.getClass() == ij.process.ByteProcessor.class && slices == 1)
             {
-                //System.out.println("Entrato");
                 adjustBrightness(IP, sFCMM.getNumberOfClusters());
                 r = new ImagePlus("Clusters in Gray Scale", IP);
             }
@@ -132,6 +155,12 @@ public class SFCMPlugin implements PlugIn{
         }
     }
 
+    /**
+     * Validates the image type and in case of an invalid image it returns false.
+     * Invalid image types are <b>ImagePlus.COLOR_256</b> as we can't work with those.
+     * @param img the @link{ImagePlus}, input of the plugin
+     * @return true if the image is valid , false otherwise
+     */
     private boolean validateImage(ImagePlus img){
 
         boolean validImage = true;
@@ -146,6 +175,17 @@ public class SFCMPlugin implements PlugIn{
         return validImage;
     }
 
+    /**
+     * Validates the color space conversion chosen in input.
+     * If the user chose to convert a single sliced, non @link{ImagePlus.COLOR_RGB}
+     * the input is invalid, if the chosen image is a multi slice image and the
+     * user wants to convert it, the input is invalid, otherwise it is valid
+     * in all the other case we will have a good input parameter
+     * @param img the @link{ImagePlus}, input of the plugin
+     * @param colorSpace the color space chosen for conversion allowed values are:
+     * "<b>None</b>", "<b>XYZ</b>", "<b>L*a*b*</b>", "<b>HSB</b>"
+     * @return true if parameters are valid otherwise false.
+     */
     private boolean validateColorSpace(ImagePlus img, String colorSpace){
 
         boolean validColorSpace = true;
@@ -165,6 +205,19 @@ public class SFCMPlugin implements PlugIn{
         return validColorSpace;
     }
 
+    /**
+     * Validates the user input parameters following the following constraints and buils
+     * an error message. Calls @link{SFCMManager} to validate each value
+     * 1 The fuzzyness value should be positive real number and strictly greater than 1
+     * 2 The number of cluster should be greater than 1, it is a integer
+     * 3 The tolerance should be greater than 0 , it can be a real number
+     * 4 The membership weight should be a positive real number greater than 0
+     * 5 The spatial function weight should be a positive real number greater than 0
+     * 6 The radius of the window should be and integer and should be strictly greater then 0 
+     * @param sFCMM the @link{SFCMManager} instace that runs the algorithm
+     * @return An error message telling the user which parameter has been wrongly entered.
+     * @see SFCMManager
+     */
     private String validateInputParameters(SFCMManager sFCMM){
         
         String errorMessage = null;
@@ -236,6 +289,14 @@ public class SFCMPlugin implements PlugIn{
         return errorMessage;
     }
 
+    /**
+     * Configures an instance of @link{GenericDialog} adding the gui components
+     * to let the user configure the algorithm parameters. To see a complete list
+     * of parameters and their explanation , see @link{SFCMManager}
+     * @param sFCMM the @link{SFCMManager} instace that runs the algorithm
+     * @param the @link{GenericDialog} instance used to show the parameters
+     * @return a configured dialog
+     */
     private GenericDialog configureDialog(SFCMManager sFCMM, GenericDialog dialog){
 
         dialog.addNumericField("Number_of_clusters", sFCMM.getNumberOfClusters(), 0);
@@ -260,6 +321,13 @@ public class SFCMPlugin implements PlugIn{
         return dialog;
     }
 
+    /**
+     * This method takes all the input parameters from the interface dialog
+     * and sest the proper variables in the @link{SFCMManager} instance which
+     * will run the algorithm.
+     * @param dialog the @link{GenericDialog} instance used to show the parameters
+     * @param sFCMM the @link{SFCMManager} instace that runs the algorithm
+     */
     private void getConfigurationFromDialog(GenericDialog dialog, SFCMManager sFCMM){
         sFCMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
         sFCMM.setMaxIterations(Math.round(dialog.getNextNumber()));
@@ -282,13 +350,26 @@ public class SFCMPlugin implements PlugIn{
         sFCMM.setFuzzyStackVisualization(dialog.getNextBoolean());
     }
 
+    /**
+     * Adjusts the brightness of the pixels of a gray scaled image representing
+     * a clustered image in order to make the cluster colors more distinctive.
+     * @param IP the @link{ImageProcessor} representing the gray scale image
+     * @param nClusters the number of clusters
+     * @see #run(java.lang.String) 
+     */
     private void adjustBrightness(ImageProcessor IP, int nClusters){
-        if (AUTO_BRIGHTNESS)
-        {
-            IP.setMinAndMax(0, nClusters);
-        }
+
+        IP.setMinAndMax(0, nClusters);
     }
 
+    /**
+     * Converts a stack into an RGB image or in a stack of gray of 8bit or 16bit or 32bit.
+     * It is used to compute back a layered image obtained from @link{SFCMManager}
+     * in order to visualize it
+     * @param originalImageType integer rapresenting the type of the original image
+     * @param centroidValueStack the stack of the clustered image
+     * @return the new Image econded in the stack.
+     */
     private ImagePlus encodeRGBImageFromStack(final int originalImageType, final ImageStack centroidValueStack){
 
         final boolean doScaling = ImageConverter.getDoScaling();
