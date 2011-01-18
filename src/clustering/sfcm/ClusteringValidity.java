@@ -86,7 +86,7 @@ public class ClusteringValidity {
 
         for(int c = 0; c < V.length; c++)
         {
-            for(int k = 0; k < U[0].length; k++)
+            for(int k = 0; k < V.length; k++)
             {
                 if(k != c)
                 {
@@ -123,7 +123,7 @@ public class ClusteringValidity {
         {
             for(int c = 0; c < U[0].length; c++)
             {
-                sum += U[i][c] * (Math.log(U[i][c]) / log2);
+                sum += U[i][c] * (Math.log(U[i][c] + Double.MIN_VALUE) / log2);
             }
 
         }

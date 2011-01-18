@@ -117,7 +117,7 @@ public class SFCMManager implements ClusteringDelegate{
     * the system console.
     * Default value is false
     */
-   private boolean printOnConsole = false;
+   private boolean printOnConsole = true;
    /**
     * The fuzzyness parameter (<code>m</code>) as a double
     * Default value is 2.0

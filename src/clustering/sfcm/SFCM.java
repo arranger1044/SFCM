@@ -633,6 +633,7 @@ public class SFCM {
                 }
             }
         }
+        
         return U;
 
     }
@@ -653,7 +654,8 @@ public class SFCM {
      * double, int, int, boolean)
      * @see #computeExponentialMembership(float[][], float[][], double)
      */
-    private static float[][] updateClusterCenterMatrix(float [][] X, float [][] Um, float [][] V){
+    private static float[][] updateClusterCenterMatrix(float [][] X, float [][] Um,
+                                                       float [][] V){
 
 
         double numerator = 0;
@@ -682,7 +684,12 @@ public class SFCM {
                 V[i][j] = (float) (numerator / denominator);
                 if ( Float.isNaN(V[i][j]))
                 {
-                    throw new IllegalArgumentException("nume "+ numerator + " denom " + denominator);
+                    for(int k = 0; k < X.length; k++)
+                    {
+                        //System.out.println(Um[k][i]);
+                    }
+                    throw new IllegalArgumentException("nume "+ numerator + " denom "
+                            + denominator + "i " + i);
                 }
                 //System.out.println("V" + i + j + "n " + numerator + " d " + denominator  );
             }
@@ -894,7 +901,7 @@ public class SFCM {
 
         for(int i = 0; i < U.length; i++)
         {
-            double numerator = 0;
+            //double numerator = 0;
             uPhQ[i][nClusters] = 0;
 
             for(int j = 0; j < nClusters; j++)
@@ -902,7 +909,7 @@ public class SFCM {
 
                 int row = xy[i][0];
                 int col = xy[i][1];
-                float h = 0;
+                double h = 0;
 
                 for(int ry = -r; ry <= r; ry++)
                 {
@@ -923,7 +930,7 @@ public class SFCM {
                                 else
                                 {
                                     boolean exit = false;
-                                    for(int k = 0; k < nClusters && !exit; k++)
+                                    for(int k = 0; k < nClusters && !exit ; k++)
                                     {
                                         if(U[elem][j] < U[elem][k])
                                         {
@@ -941,6 +948,8 @@ public class SFCM {
                     }
                 }
 
+//                if (h == 0.0)
+//                    System.out.println("ciautistico");
                 double uPTimeshQ = Math.pow(U[i][j], p) *
                                    Math.pow(h, q);
                 uPhQ[i][j] = uPTimeshQ;
@@ -973,6 +982,485 @@ public class SFCM {
             }
         }
         //U = Uupdate;
+        return U;
+    }
+
+    private static float [][] opt1UpdateMembershipsWithSpatialFunctionH(float [][] U, int rad,
+                                                                          double p, double q,
+                                                                          int cols, double [] supC,
+                                                                          double [][] uPhQ){
+        int nClusters = U[0].length;
+        if(uPhQ == null)
+        {
+            uPhQ = new double[U.length][nClusters + 1];
+        }
+        if (supC == null)
+        {
+            supC = new double[cols];
+        }
+
+        int rows = U.length / cols;
+
+        for(int i = 0; i < U.length; i++)
+        {
+            uPhQ[i][nClusters] = 0;
+        }
+
+        double uPTimeshQ  = 0;
+        for(int k = 0; k < nClusters; k++)
+        {
+            for (int i = 0; i < rows; ++i)
+            {
+                double h = 0;
+                int qFirst = 0;
+                int qLast = 0;
+                for (int rx = 0; rx <= rad; rx++)
+                {
+                    if (rx < cols)
+                    {
+                        double mem = 0;
+                        for (int ry =- rad; ry <= rad; ry++)
+                        {
+                            int y = i + ry;
+
+                            if (y >= 0 && y < rows)
+                            {
+                                //mem += mat[y][rx];
+                                mem += U[y * cols + rx][k];
+                            }
+                        }
+                        supC[qLast] = mem;
+                        qLast++;
+                        h += mem;
+                    }
+                }
+                int j = 0, col, y;
+                //System.out.println("i " + i + " j " + j + "h " + h);
+                uPTimeshQ = Math.pow(U[i * cols][k], p) *
+                            Math.pow(h, q);
+                uPhQ[i * cols][k] = uPTimeshQ;
+                uPhQ[i * cols][nClusters] += uPTimeshQ;
+
+                qFirst = 0;
+                qLast = rad + 1;
+                for (j = 1; j < cols; j++)
+                {
+                    col = j + rad;
+                    if (j - rad > 0)
+                    {
+                        h -= supC[qFirst];
+                        qFirst++;
+                    }
+                    if (j + rad < cols)
+                    {
+                        double mem = 0;
+                        for (int ry =- rad; ry <= rad; ry++)
+                        {
+                            y = i + ry;
+
+                            if (y >= 0 && y < rows)
+                            {
+                                //mem += mat[y][col];
+                                mem += U[y * cols + col][k];
+
+                            }
+                        }
+                        supC[qLast] = mem;
+                        qLast++;
+                        h += mem;
+
+                    }
+                    //System.out.println("i " + i + " j " + j + "h " + h);
+                    int offset = i * cols + j;
+                    uPTimeshQ = Math.pow(U[offset][k], p) *
+                                Math.pow(h, q);
+                    uPhQ[offset][k] = uPTimeshQ;
+                    uPhQ[offset][nClusters] += uPTimeshQ;
+                }
+            }
+        }
+        
+        for(int i = 0; i < U.length; i++)
+        {
+            double denominatorSum = uPhQ[i][nClusters];
+            for(int j = 0; j < nClusters; j++)
+            {
+                U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
+            }
+        }
+        return U;
+    }
+
+    private static float [][] opt1UpdateMembershipsWithSpatialFunctionG(float [][] U, int rad,
+                                                                        double p, double q,
+                                                                        int cols, double [] supC,
+                                                                        double [][] uPhQ,
+                                                                        short [][] G){
+        int nClusters = U[0].length;
+        if(uPhQ == null)
+        {
+            uPhQ = new double[U.length][nClusters + 1];
+        }
+        if (supC == null)
+        {
+            supC = new double[cols];
+        }
+        if (G == null)
+        {
+            G = new short[U.length][nClusters];
+        }
+
+        /* Computing the G matrix just once */
+        for (int i = 0; i < G.length; ++i)
+        {
+            double max = U[i][0];
+            int maxPos = 0;
+            for (int j = 1; j < nClusters; ++j)
+            {
+                G[i][j] = 0;
+                if(U[i][j] > max)
+                {
+                    max = U[i][j];
+                    maxPos = j;
+                }
+            }
+            G[i][maxPos] = 1;
+        }
+        int rows = U.length / cols;
+
+        for(int i = 0; i < U.length; i++)
+        {
+            uPhQ[i][nClusters] = 0;
+        }
+
+        double uPTimeshQ  = 0;
+        for(int k = 0; k < nClusters; k++)
+        {
+            for (int i = 0; i < rows; ++i)
+            {
+                double h = 0;
+                int qFirst = 0;
+                int qLast = 0;
+                for (int rx = 0; rx <= rad; rx++)
+                {
+                    if (rx < cols)
+                    {
+                        double mem = 0;
+                        for (int ry =- rad; ry <= rad; ry++)
+                        {
+                            int y = i + ry;
+
+                            if (y >= 0 && y < rows)
+                            {
+                                //mem += mat[y][rx];
+                                mem += G[y * cols + rx][k];
+                            }
+                        }
+                        supC[qLast] = mem;
+                        qLast++;
+                        h += mem;
+                    }
+                }
+                int j = 0, col, y;
+                //System.out.println("i " + i + " j " + j + "h " + h);
+                uPTimeshQ = Math.pow(U[i * cols][k], p) *
+                            Math.pow(h, q);
+                uPhQ[i * cols][k] = uPTimeshQ;
+                uPhQ[i * cols][nClusters] += uPTimeshQ;
+
+                qFirst = 0;
+                qLast = rad + 1;
+                for (j = 1; j < cols; j++)
+                {
+                    col = j + rad;
+                    if (j - rad > 0)
+                    {
+                        h -= supC[qFirst];
+                        qFirst++;
+                    }
+                    if (j + rad < cols)
+                    {
+                        double mem = 0;
+                        for (int ry =- rad; ry <= rad; ry++)
+                        {
+                            y = i + ry;
+
+                            if (y >= 0 && y < rows)
+                            {
+                                //mem += mat[y][col];
+                                mem += G[y * cols + col][k];
+
+                            }
+                        }
+                        supC[qLast] = mem;
+                        qLast++;
+                        h += mem;
+
+                    }
+                    //System.out.println("i " + i + " j " + j + "h " + h);
+                    int offset = i * cols + j;
+                    uPTimeshQ = Math.pow(U[offset][k], p) *
+                                Math.pow(h, q);
+                    uPhQ[offset][k] = uPTimeshQ;
+                    uPhQ[offset][nClusters] += uPTimeshQ;
+                }
+            }
+        }
+
+        for(int i = 0; i < U.length; i++)
+        {
+            double denominatorSum = uPhQ[i][nClusters];
+            for(int j = 0; j < nClusters; j++)
+            {
+                U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
+            }
+        }
+        return U;
+    }
+
+    private static float [][] opt2UpdateMembershipsWithSpatialFunctionH(float [][] U, int rad,
+                                                                          double p, double q,
+                                                                          int cols, double [][] sumU,
+                                                                          double [][] uPhQ){
+        int nClusters = U[0].length;
+
+        int rows = U.length / cols;
+        
+        if(uPhQ == null)
+        {
+            uPhQ = new double[U.length][nClusters + 1];
+        }
+        if (sumU == null)
+        {
+            sumU = new double[U.length][nClusters];
+        }
+
+        for(int i = 0; i < U.length; i++)
+        {
+            uPhQ[i][nClusters] = 0;
+        }
+
+        int height = rows - 1;
+        int width = cols - 1;
+        int yMin, yMax, xMin, xMax, y1w, y2w, yw, ywx = 0;
+        double s1, s2, s3, s4, tot;
+        /* Building up the integral image in sumU*/
+        
+        for (int k = 0; k < nClusters; ++k)
+        {
+            double s = 0;
+            for (int x = 0; x < cols; ++x)
+            {
+                s += U[x][k];
+                sumU[x][k] = s;
+            }
+
+            for (int y = 1; y < rows; ++y )
+            {
+                yw = y * cols;
+                sumU[yw][k] = sumU[yw - cols][k] + U[yw][k];
+                for (int x = 1; x < cols; ++x )
+                {
+                    ywx = yw + x;
+                    sumU[ywx][k] = sumU[ywx - cols][k] + sumU[ywx - 1][k]
+                                 + U[ywx][k] - sumU[ywx - cols - 1][k];
+                }
+            }
+
+            for ( int y = 0; y <= height; ++y )
+            {
+                yMin = Math.max(-1, y - rad - 1);
+                yMax = Math.min(height, y + rad);
+                y1w = yMin * cols;
+                y2w = yMax * cols;
+                for (int x = 0; x <= width; ++x)
+                {
+                    xMin = Math.max(-1, x - rad - 1);
+                    xMax = Math.min(width, x + rad);
+                    if (y1w < 0 && xMin < 0)
+                    {
+                        s1 = 0;
+                        s2 = 0;
+                        s3 = 0;
+                    }
+                    else if (y1w < 0)
+                    {
+                        s1 = 0;
+                        s2 = 0;
+                        s3 = sumU[y2w + xMin][k];
+
+                    }
+                    else if (xMin < 0)
+                    {
+                        s1 = 0;
+                        s3 = 0;
+                        s2 = sumU[y1w + xMax][k];
+                    }
+                    else
+                    {
+                        s1 = sumU[y1w + xMin][k];
+                        s2 = sumU[y1w + xMax][k];
+                        s3 = sumU[y2w + xMin][k];
+                    }
+
+                    s4 = sumU[y2w + xMax][k];
+                    tot = s1 + s4 - s2 - s3;
+                    int offset = y * cols + x;
+                    double uPTimeshQ = Math.pow(U[offset][k], p) *
+                                       Math.pow(tot, q);
+                    uPhQ[offset][k] = uPTimeshQ;
+                    uPhQ[offset][nClusters] += uPTimeshQ;
+//                        System.out.print(s1 + "+" + s4 + "-" +
+//                                        s2 + "-" + s3 + "=");
+//                        System.out.println( tot);
+                }
+            }
+        }
+//        for (int k = 0; k < nClusters; ++k)
+//        {
+//
+//        }
+
+
+        for(int i = 0; i < U.length; i++)
+        {
+            double denominatorSum = uPhQ[i][nClusters];
+            for(int j = 0; j < nClusters; j++)
+            {
+                U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
+            }
+        }
+        return U;
+    }
+
+
+    private static float [][] opt2UpdateMembershipsWithSpatialFunctionG(float [][] U, int rad,
+                                                                          double p, double q,
+                                                                          int cols, int [][] sumU,
+                                                                          double [][] uPhQ,
+                                                                          short [][] G){
+        int nClusters = U[0].length;
+
+        int rows = U.length / cols;
+
+        if(uPhQ == null)
+        {
+            uPhQ = new double[U.length][nClusters + 1];
+        }
+        if (sumU == null)
+        {
+            sumU = new int[U.length][nClusters];
+        }
+
+        if (G == null)
+        {
+            G = new short[U.length][nClusters];
+        }
+
+        /* Computing the G matrix just once */
+        for (int i = 0; i < G.length; ++i)
+        {
+            double max = U[i][0];
+            int maxPos = 0;
+            for (int j = 1; j < nClusters; ++j)
+            {
+                G[i][j] = 0;
+                if(U[i][j] > max)
+                {
+                    max = U[i][j];
+                    maxPos = j;
+                }
+            }
+            G[i][maxPos] = 1;
+        }
+
+        for(int i = 0; i < U.length; i++)
+        {
+            uPhQ[i][nClusters] = 0;
+        }
+
+        int height = rows - 1;
+        int width = cols - 1;
+        int yMin, yMax, xMin, xMax, y1w, y2w, yw, ywx = 0;
+        int s1, s2, s3, s4, tot;
+        /* Building up the integral image in sumU*/
+
+        for (int k = 0; k < nClusters; ++k)
+        {
+            int s = 0;
+            for (int x = 0; x < cols; ++x)
+            {
+                s += G[x][k];
+                sumU[x][k] = s;
+            }
+
+            for (int y = 1; y < rows; ++y )
+            {
+                yw = y * cols;
+                sumU[yw][k] = sumU[yw - cols][k] + G[yw][k];
+                for (int x = 1; x < cols; ++x )
+                {
+                    ywx = yw + x;
+                    sumU[ywx][k] = sumU[ywx - cols][k] + sumU[ywx - 1][k]
+                                 + G[ywx][k] - sumU[ywx - cols - 1][k];
+                }
+            }
+
+            for ( int y = 0; y <= height; ++y )
+            {
+                yMin = Math.max(-1, y - rad - 1);
+                yMax = Math.min(height, y + rad);
+                y1w = yMin * cols;
+                y2w = yMax * cols;
+                for (int x = 0; x <= width; ++x)
+                {
+                    xMin = Math.max(-1, x - rad - 1);
+                    xMax = Math.min(width, x + rad);
+                    if (y1w < 0 && xMin < 0)
+                    {
+                        s1 = 0;
+                        s2 = 0;
+                        s3 = 0;
+                    }
+                    else if (y1w < 0)
+                    {
+                        s1 = 0;
+                        s2 = 0;
+                        s3 = sumU[y2w + xMin][k];
+
+                    }
+                    else if (xMin < 0)
+                    {
+                        s1 = 0;
+                        s3 = 0;
+                        s2 = sumU[y1w + xMax][k];
+                    }
+                    else
+                    {
+                        s1 = sumU[y1w + xMin][k];
+                        s2 = sumU[y1w + xMax][k];
+                        s3 = sumU[y2w + xMin][k];
+                    }
+
+                    s4 = sumU[y2w + xMax][k];
+                    tot = s1 + s4 - s2 - s3;
+                    int offset = y * cols + x;
+                    double uPTimeshQ = Math.pow(U[offset][k], p) *
+                                       Math.pow(tot, q);
+                    uPhQ[offset][k] = uPTimeshQ;
+                    uPhQ[offset][nClusters] += uPTimeshQ;
+                }
+            }
+        }
+
+        for(int i = 0; i < U.length; i++)
+        {
+            double denominatorSum = uPhQ[i][nClusters];
+            for(int j = 0; j < nClusters; j++)
+            {
+                U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
+            }
+        }
         return U;
     }
 
@@ -1083,15 +1571,19 @@ public class SFCM {
         int [][] xy = precomputeMatrixForm(X.length, width);
         int [][] offset = precomputeArrayForm(X.length / width, width);
         double [][] uPhQ = null;
+        double [] colCached = null;
+        double [][] integralU = null;
+        short [][] gCached = null;
+        int [][] integralG = null;
 
         float [][] oldU = null;
-        if (stopCriterion == 0 || stopCriterion == 2)
+        if (stopCriterion == 0 || stopCriterion == 2 || testing)
         {
             oldU = new float [U.length][k];
         }
 
         float [][] oldV = null;
-        if (stopCriterion == 1 || stopCriterion == 3)
+        if (stopCriterion == 1 || stopCriterion == 3 || testing)
         {
             oldV = new float [V.length][nFeatures];
         }
@@ -1101,9 +1593,10 @@ public class SFCM {
 
         while (count < iterations && distance > tolerance)
         {
+//            System.out.println("it "+ count);
 
             V = updateClusterCenterMatrix(X, Um, V);
-
+            //printMatrix(V);
 //            if (count < 2){
 //                System.out.println("\n\nV\n\n " + count);
 //                printMatrix(V);
@@ -1121,12 +1614,44 @@ public class SFCM {
 //                printMatrix(U);
 //            }
 
+
             if ((r != 0) && (p != 1.0 || q != 0.0))
             {
-                U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction,
-                                                        width, xy, offset, uPhQ);
+//                U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction,
+//                                                        width, xy, offset, uPhQ);
+                
+                if (spatialFunction == 0)
+                {
+                    U = opt1UpdateMembershipsWithSpatialFunctionH(U, r, p, q, width,
+                                                                    colCached, uPhQ);
+                }
+                else if (spatialFunction == 1)
+                {
+                    U = opt1UpdateMembershipsWithSpatialFunctionG(U, r, p, q, width,
+                                                                    colCached, uPhQ,
+                                                                    gCached);
+                }
+
+//                if (spatialFunction == 0)
+//                {
+//                    U = opt2UpdateMembershipsWithSpatialFunctionH(U, r, p, q, width,
+//                                                                  integralU, uPhQ);
+//                }
+//                else if (spatialFunction == 1)
+//                {
+//                    U = opt2UpdateMembershipsWithSpatialFunctionG(U, r, p, q, width,
+//                                                                  integralG, uPhQ,
+//                                                                  gCached);
+//                }
+
             }
 
+//                        if(count == 0){
+//                for (k = 0; k < X.length; k++){
+//                    System.out.println(U[k][2]);
+//                }
+//            }
+            
             Um = computeExponentialMembership(U, Um, m);
 
             if (!testing)
@@ -1169,12 +1694,12 @@ public class SFCM {
                 delegate.updateStatus(null, null, count, distance);
             }
 
-            if (stopCriterion == 0 || stopCriterion == 2)
+            if (stopCriterion == 0 || stopCriterion == 2 || testing)
             {
                 matrixCopy(U, oldU);
             }
 
-            if (stopCriterion == 1 || stopCriterion == 3)
+            if (stopCriterion == 1 || stopCriterion == 3 || testing)
             {
                 matrixCopy(V, oldV);
             }
