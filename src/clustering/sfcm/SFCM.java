@@ -19,6 +19,8 @@ import java.util.Random;
  */
 public class SFCM {
 
+    private static double zeroCorrection = 1E-10;
+
     /**
      * The class constructor is private in order to prevent the class from being
      * instantiated
@@ -1110,6 +1112,9 @@ public class SFCM {
             G = new short[U.length][nClusters];
         }
 
+        /* Allocating a support array for checking if a column of G goes to 0*/
+        int [] g0count = new int [nClusters];
+
         /* Computing the G matrix just once */
         for (int i = 0; i < G.length; ++i)
         {
@@ -1126,6 +1131,7 @@ public class SFCM {
             }
             G[i][maxPos] = 1;
         }
+        
         int rows = U.length / cols;
 
         for(int i = 0; i < U.length; i++)
@@ -1138,14 +1144,14 @@ public class SFCM {
         {
             for (int i = 0; i < rows; ++i)
             {
-                double h = 0;
+                int h = 0;
                 int qFirst = 0;
                 int qLast = 0;
                 for (int rx = 0; rx <= rad; rx++)
                 {
                     if (rx < cols)
                     {
-                        double mem = 0;
+                        int mem = 0;
                         for (int ry =- rad; ry <= rad; ry++)
                         {
                             int y = i + ry;
@@ -1163,6 +1169,10 @@ public class SFCM {
                 }
                 int j = 0, col, y;
                 //System.out.println("i " + i + " j " + j + "h " + h);
+                if (h == 0)
+                {
+                    g0count[k]++;
+                }
                 uPTimeshQ = Math.pow(U[i * cols][k], p) *
                             Math.pow(h, q);
                 uPhQ[i * cols][k] = uPTimeshQ;
@@ -1180,7 +1190,7 @@ public class SFCM {
                     }
                     if (j + rad < cols)
                     {
-                        double mem = 0;
+                        int mem = 0;
                         for (int ry =- rad; ry <= rad; ry++)
                         {
                             y = i + ry;
@@ -1198,11 +1208,28 @@ public class SFCM {
 
                     }
                     //System.out.println("i " + i + " j " + j + "h " + h);
+                    if (h == 0)
+                    {
+                        g0count[k]++;
+                    }
                     int offset = i * cols + j;
                     uPTimeshQ = Math.pow(U[offset][k], p) *
                                 Math.pow(h, q);
                     uPhQ[offset][k] = uPTimeshQ;
                     uPhQ[offset][nClusters] += uPTimeshQ;
+                }
+            }
+        }
+
+        /* Checking the support array to see if a column is completly zero valued */
+        for(int j = 0; j < nClusters; j++)
+        {
+            if(g0count[j] == U.length)
+            {
+                /* The column is zero valued, we must correct uPhQ */
+                for (int i = 0; i < U.length; i++)
+                {
+                    uPhQ[i][j] = zeroCorrection;
                 }
             }
         }
@@ -1357,6 +1384,9 @@ public class SFCM {
             G = new short[U.length][nClusters];
         }
 
+        /* Allocating a support array for checking if a column of G goes to 0*/
+        int [] g0count = new int [nClusters];
+
         /* Computing the G matrix just once */
         for (int i = 0; i < G.length; ++i)
         {
@@ -1444,11 +1474,28 @@ public class SFCM {
 
                     s4 = sumU[y2w + xMax][k];
                     tot = s1 + s4 - s2 - s3;
+                    if (tot == 0)
+                    {
+                        g0count[k]++;
+                    }
                     int offset = y * cols + x;
                     double uPTimeshQ = Math.pow(U[offset][k], p) *
                                        Math.pow(tot, q);
                     uPhQ[offset][k] = uPTimeshQ;
                     uPhQ[offset][nClusters] += uPTimeshQ;
+                }
+            }
+        }
+
+        /* Checking the support array to see if a column is completly zero valued */
+        for(int j = 0; j < nClusters; j++)
+        {
+            if(g0count[j] == U.length)
+            {
+                /* The column is zero valued, we must correct uPhQ */
+                for (int i = 0; i < U.length; i++)
+                {
+                    uPhQ[i][j] = zeroCorrection;
                 }
             }
         }
