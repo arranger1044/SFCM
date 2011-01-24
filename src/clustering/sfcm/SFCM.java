@@ -10,15 +10,21 @@ import java.util.HashSet;
 import java.util.Random;
 
 /**
- * This class encapsulate the Spatial Fuzzy C-Means as proposed in: <i>Chuang,
+ * This class encapsulates the Spatial Fuzzy C-Means as proposed in: <i>Chuang,
  * Tzeng, Chen Fuzzy c-means clustering with spatial information for image
  * segmentation. Computerized Medical Imaging and Graphics 30 (2006) 9–15</i>.
  * It implements the Singleton pattern and provides as the only public class
- * method @link{#run}. It also implements the delegation pattern, being free from
+ * method @link{run}. It also implements the delegation pattern, being free from
  * ImageJ API it can be  more easily reused
  */
 public class SFCM {
 
+    /**
+     * A double value used for correcting numerical error when the spatial function
+     * computed while updating the cluster membership matrix <code>U</code> equals 0
+     * for each samples for a given cluster.
+     * @see #opt1UpdateMembershipsWithSpatialFunctionG(float[][], int, double, double, int, double[], double[][], short[][]) 
+     */
     private static double zeroCorrection = 1E-10;
 
     /**
@@ -75,7 +81,7 @@ public class SFCM {
      * @return a vector of object that has three elements: a defuzzyfied memberhip matrix,
      * the cluster centroid matrix and the cluster membership matrix
      *
-     * @see SFCMManager.run()
+     * @see SFCMManager
      * @see ClusteringDelegate
      * @see #defuzzyfyClusterMemberships(float[][])
      */
@@ -87,16 +93,22 @@ public class SFCM {
                                 int width,
                                 boolean testing){
 
+        /* Allocating U and V matrixes */
         float [][] V = new float[k][X[0].length];
         float [][] U = new float [X.length][k];
 
+        /* Initializing U and V according to 'initMode' */
         initializeMatrixes(X, V, U, k, randomSeed, initMode, m);
 
+        /* Starting the clustering algorithm */
         Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, 
                                                 m, iterations, stopCriterion, r,
                                                 p, q, spatialFunction, width,
                                                 testing);
+
+        /* Returning the matrixes in an array of objects*/
         Object[] matrixes = new Object[3];
+        /* defuzzyfying the U matrix */
         matrixes[0] = defuzzyfyClusterMemberships((float [][])clusteredMatrixes[0]);
         matrixes[1] = clusteredMatrixes[1];
         matrixes[2] = clusteredMatrixes[0];
@@ -122,7 +134,7 @@ public class SFCM {
      * <b>2</b> - Firstly initializes the cluster membership matrix <code>U</code> randomly
      * @param delegate is the object which is delegate to output partial results
      * of the algorithm.
-     * @param m the fuzziness parameter
+     * @param m the fuzzyness parameter
      * @return an Object array which containes the initialized <code>U</code>
      * and <code>V</code> matrixes
      * @see #randomInitialization(float[][], float[][], int, int)
@@ -141,23 +153,21 @@ public class SFCM {
         switch(initMode)
         {
             case 0:
+                /* Random initialization on V first, then U is updated */
                 V = randomInitialization(X, V, k, randomSeed);
                 D = euclideanDistanceMatrix(X, V, D, m);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
                 System.out.println("Random V");
                 break;
             case 1:
+                /* K-Means++ initialization on V, then U is updated */
                 V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
-                //printMatrix(V);
                 D = euclideanDistanceMatrix(X, V, D, m);
-                //printMatrix(D);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
-                System.out.println("\n\nU\n\n");
-                //printMatrix(U);
                 System.out.println("K-Means++");
-                
                 break;
             case 2:
+                /* Random initialization on U, no need to update V */
                 U = initializeClusterMembershipRandom(U, k, randomSeed);
                 System.out.println("Random U");
                 break;
@@ -228,13 +238,12 @@ public class SFCM {
                 U[i][j] /= sum;
             }
         }
-        //printMatrix(U);
         return U;
     }
 
     /**
-     * Initializes the cluster center matrix<code>V</code> randomly by selecting
-     * sample from X and checking not to select an already selected sample
+     * Initializes the cluster center matrix <code>V</code> randomly by selecting
+     * samples from X and checking not to pick an already selected sample
      * @param X data matrix
      * @param V cluster centroid matrix to be initialized
      * @param k number of clusters
@@ -251,6 +260,7 @@ public class SFCM {
         final HashSet<Integer> centerLocations = new HashSet<Integer>();
         int clusterCreated = 0;
 
+        /* We need to pick k clusters */
         while (clusterCreated < k)
         {
             final int clusterCandidate = random.nextInt(nbPixels);
@@ -268,11 +278,11 @@ public class SFCM {
     }
 
     /**
-     * Initializes the cluster center matrix<code>V</code> according to the
+     * Initializes the cluster center matrix <code>V</code> according to the
      * <i>K-means++</i> initialization criterion. The first centroid is selected
      * randomly from the samples and the remaining ones are selected according
-     * to a weighted probability distribution on the distance from the samples and
-     * the already selected centroids.
+     * to a weighted probability distribution on the squared distance from the samples
+     * and the nearest centroid, chosen from thealready selected centroids.
      * @link{http://en.wikipedia.org/wiki/K-means++}
      * @param X the data matrix
      * @param V the centroid matrix to be initialized
@@ -287,10 +297,10 @@ public class SFCM {
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
-        // Location of pixels used as cluster centers
+        /* Location of data used as cluster centers */
         final HashSet<Integer> centerLocation = new HashSet<Integer>();
         int clusterCreated = 0;
-        // Choose one center uniformly at random from among pixels
+        /* Choose one center uniformly at random from among samples */
         {
             final int p = random.nextInt(nbPixels);
             centerLocation.add(p);
@@ -300,17 +310,17 @@ public class SFCM {
 
         final double[] dp2 = new double[nbPixels];
         while (clusterCreated < k) {
-            // For each data point p compute D(p), the distance between p and the nearest center that
-            // has already been chosen.
+            /* For each data point p compute D(p), the distance between p and
+               the nearest center that has already been chosen. */
             double sum = 0;
 
             for (int offset = 0; offset < nbPixels; offset++) {
 
+                /* Let's not pick already chosen centers */
                 if (centerLocation.contains(offset)) {
                     continue;
                 }
-                // Distance to closest cluster
-
+                /* Distance to closest cluster */
                 final float[] v = X[offset];
                 final int cci = closestCluster(v, V, clusterCreated);
                 final double d = euclideanDistance(v, V[cci]);
@@ -440,15 +450,18 @@ public class SFCM {
                     sum += d * d;
                 }
 
-                //D[i][j] = (float)Math.sqrt(sum);
                 D[i][j] = sum;
-                //System.out.println("D"+ i + j + " " + D[i][j]);
+
+                /* If the distance is zero then we must 'mark' the last column element
+                   with -1 */
                 if (D[i][j] == 0.0)
                 {
                     D[i][B.length] = -1;
                 }
                 else
                 {
+                    /* If the distance is not zero and the last column element has not
+                     already been marked, let's store there the precomputed sum */
                     if (D[i][B.length] != -1)
                     {
                         D[i][B.length] += Math.pow(1 / D[i][j], exp);
@@ -485,10 +498,10 @@ public class SFCM {
             for (int j = 0; j < nClusters; j++)
             {
                 Um[i][j] = (float) Math.pow(U[i][j], m);
-                if ( Float.isNaN(Um[i][j]))
-                {
-                    throw new IllegalArgumentException("Nan found "+ U[i][j] + " m " + m);
-                }
+//                if ( Float.isNaN(Um[i][j]))
+//                {
+//                    throw new IllegalArgumentException("Nan found "+ U[i][j] + " m " + m);
+//                }
             }
         }
         return Um;
@@ -515,11 +528,8 @@ public class SFCM {
         {
              for(int j = 0; j < V.length; j++)
                {
-                //float distancePixelToCluster = euclideanDistance(i, j, D);
                 double distancePixelToCluster = D[i][j];
-                //System.out.println("Distance " + distancePixelToCluster);
                 objF += distancePixelToCluster * Um[i][j];
-                //System.out.println("obj " + objF);
                }
         }
         return objF;
@@ -554,76 +564,46 @@ public class SFCM {
 
             for(int j = 0; j < nClusters; j++)
             {
-                    //float num = euclideanDistance(i, j, D);
+                /* The distance is stored in the Distance Matrix D */
                     double distance = D[i][j];
+                    /* If the distance is not zero we can continue the computation */
                     if(distance != 0.0)
                     {
-//                                            //  sum of distances from this data point to all clusters.
-//                        float sumTerms = 0;
-//                        for(int k = 0; k < V.length; k++)
-//                        {
-//                            //float thisDistance = euclideanDistance(i,k, D);
-//                            float thisDistance = D[i][k];
-//
-//                            //sumTerms += Math.pow(num / thisDistance, (2f / (m - 1f)));
-//                            sumTerms += Math.pow(num / thisDistance, (1f / (m - 1f)));
-////                            if (thisDistance == 0.0f)
-////                            {
-////                                System.out.println("Ouch " + i + " " + k + " " + j + " " +
-////                                        Math.pow(num / thisDistance, (2f / (m - 1f))));
-////                            }
-//
-////                                             if ( Float.isNaN(thisDistance))
-////                    {
-////                        throw new IllegalArgumentException("thisDistance"+ num + " m " + m);
-////                    }
-////                                             if ( Float.isNaN(sumTerms))
-////                    {
-////                        throw new IllegalArgumentException("sumterms "+ thisDistance + "
-////                            d " + num+ " j " + j + " k " + k);
-////                    }
-//                        }
-//
-//                        //sumTerms = (float)(Math.pow(num, (1f / (m - 1f)))) / D[i][V.length];
-//                        //System.out.println(D[i][V.length] + " " + sumTerms + " " + (float)(Math.pow(num, (1f / (m - 1f)))));
-//                        U[i][j] = (1f / sumTerms);
+                        /* The precomputed denominator sum is stored in the last column
+                           element of the matrix D */
                         double denominatorSum = D[i][nClusters];
+                        /* If the sum has not been marked as -1 then we can compute
+                           the U[i][j] element safely */
                         if (denominatorSum != -1)
                         {
-                            
                             double numerator = Math.pow(distance, exp);
-                            //U[i][j] = 1 / (numerator / denominator);
                             U[i][j] = (float) (1f / (numerator * denominatorSum));
-                            if ( Float.isNaN(U[i][j]))
-                            {
-                                throw new IllegalArgumentException("Nan found " + " m " + m + " num " + numerator
-                                        + " den " + denominatorSum + " dis " + distance + " exp " + exp);
-                            }
+//                            if ( Float.isNaN(U[i][j]))
+//                            {
+//                                throw new IllegalArgumentException("Nan found " + " m " + m + " num " + numerator
+//                                        + " den " + denominatorSum + " dis " + distance + " exp " + exp);
+//                            }
                         }
                         else
                         {
-                            U[i][j] = 0;
+                            U[i][j] = 0; /* We assign zero otherwise */
                         }
                     }
                     else
                     {
                         count++;
-//                        float sum = 0;
-//                        for (int h = 0; h < V.length; h++)
-//                        {
-//                            if (h != j)
-//                                sum += U[i][h];
-//                        }
-//                        System.out.println("Sum " + sum);
-                        U[i][j] = 1.0f;
+                        U[i][j] = 1.0f; /* If the distance is zero we assign 1 for now and
+                                            count how many times for a row it becomes 1*/
                     }
 
-                    if ( Float.isNaN(U[i][j]))
-                    {
-                        throw new IllegalArgumentException("Nan found " + " m " + m);
-                    }
+//                    if ( Float.isNaN(U[i][j]))
+//                    {
+//                        throw new IllegalArgumentException("Nan found " + " m " + m);
+//                    }
             }
 
+            /* If for this row of U we assigned 1.0 to more than one sample,
+               we must normalize*/
             if (count > 1)
             {
                 for(int j = 0; j < V.length; j++)
@@ -659,42 +639,45 @@ public class SFCM {
     private static float[][] updateClusterCenterMatrix(float [][] X, float [][] Um,
                                                        float [][] V){
 
-
-        double numerator = 0;
         double denominator = 0;
 
         int nClusters = V.length;
         int nFeatures = X[0].length;
+        double [] numerator = null;
 
         for (int i = 0; i < nClusters; i++)
         {
+            /* Creating an array which will store the intermediate values for each
+               feature */
+            numerator = new double[nFeatures];
+            denominator = 0;
+            for(int k = 0; k < X.length; k++)
+            {
+                float x[] = X[k];
+                double um = Um[k][i];
+                for (int j = 0; j < nFeatures; j++)
+                {
+                    numerator[j] += um * x[j];
+                }
 
+                denominator += um;
+            }
+
+            /* Updating each element of V cycling through the features*/
             for (int j = 0; j < nFeatures; j++)
             {
-                numerator = 0;
-                denominator = 0;
-                for(int k = 0; k < X.length; k++)
-                {
-                    /// trovare tutti i pixel di 1 determinato cluster k
-                    float x[] = X[k];
-                    numerator += Um[k][i] * x[j];
-                    denominator += Um[k][i];
-                    //System.out.println("Um" + k + i + " " + Um[k][i] + " x " + x[j]);
-                    //System.out.println("N " + numerator + " D " + denominator);
-                }
-                /// cluster x caratteristiche. ovvero V
-                V[i][j] = (float) (numerator / denominator);
-                if ( Float.isNaN(V[i][j]))
-                {
-                    for(int k = 0; k < X.length; k++)
-                    {
-                        //System.out.println(Um[k][i]);
-                    }
-                    throw new IllegalArgumentException("nume "+ numerator + " denom "
-                            + denominator + "i " + i);
-                }
-                //System.out.println("V" + i + j + "n " + numerator + " d " + denominator  );
+                 V[i][j] = (float) (numerator[j] / denominator);
+//                 if ( Float.isNaN(V[i][j]))
+//                 {
+//                    for(int k = 0; k < X.length; k++)
+//                    {
+//                        //System.out.println(Um[k][i]);
+//                    }
+//                    throw new IllegalArgumentException("nume "+ numerator + " denom "
+//                            + denominator + "i " + i);
+//                 }
             }
+
         }
         return V;
     }
@@ -950,28 +933,11 @@ public class SFCM {
                     }
                 }
 
-//                if (h == 0.0)
-//                    System.out.println("ciautistico");
                 double uPTimeshQ = Math.pow(U[i][j], p) *
                                    Math.pow(h, q);
                 uPhQ[i][j] = uPTimeshQ;
                 uPhQ[i][nClusters] += uPTimeshQ;
 
-//                int row = i / cols;
-//                int col = i - row * cols;
-//
-//                numerator = (float) ((Math.pow(U[i][j], p)) *
-//                        Math.pow(functionH(U, r, row, col, j, rows, cols, spatialFunctionType), q));
-//
-//                float denominator = 0;
-//
-//                for (int k = 0; k < U[0].length; k++)
-//                {
-//                    denominator += ((Math.pow(U[i][k], p)) *
-//                            (Math.pow(functionH(U, r, row, col, k, rows, cols, spatialFunctionType), q)));
-//                }
-//
-//                Uupdate[i][j] = numerator / denominator;
             }
         }
 
@@ -983,15 +949,37 @@ public class SFCM {
                 U[i][j] = (float) (uPhQ[i][j] / denominatorSum);
             }
         }
-        //U = Uupdate;
+
         return U;
     }
 
+    /**
+     * Computes the update rule of the membership matrix <code>U</code> according
+     * to the <i>Spatial Fuzzy C-Mean</i> algorithm.
+     * It implements the spatial function as the sum of the membership values for
+     * the data belonging to the same neighborhood.
+     * An optimization is implemented when computing the neighbourhood window.
+     * An array, with length equal to the
+     * number of the matrix columns, is used as a queue to compute che sum of the
+     * window column values and to efficiently and incrementally move the window
+     * along the columns. For each row the array is initially recomputed from scratch
+     * @param U the cluster membership matrix to update
+     * @param rad the window radius
+     * @param p the membership weight
+     * @param q the spatial function weight
+     * @param cols the number of columns in matrix form
+     * @param supC the array acting as a queue, if null it will be allocated
+     * @param uPhQ a support matrix used to store intermediate computed values,
+     * if null it will be allocated
+     * @return the updated cluster membership matrix
+     */
     private static float [][] opt1UpdateMembershipsWithSpatialFunctionH(float [][] U, int rad,
                                                                           double p, double q,
                                                                           int cols, double [] supC,
                                                                           double [][] uPhQ){
         int nClusters = U[0].length;
+
+        /* Allocating the null data structures */
         if(uPhQ == null)
         {
             uPhQ = new double[U.length][nClusters + 1];
@@ -1003,17 +991,24 @@ public class SFCM {
 
         int rows = U.length / cols;
 
+        /* Zeroing the uPhQ support matrix */
         for(int i = 0; i < U.length; i++)
         {
             uPhQ[i][nClusters] = 0;
         }
 
         double uPTimeshQ  = 0;
+
+        /* For each column of U*/
         for(int k = 0; k < nClusters; k++)
         {
+            /* Moving along rows but considering the data sample in matrix form
+               rows * cols */
             for (int i = 0; i < rows; ++i)
             {
                 double h = 0;
+                /* For each new row of the matrix form we recompute supC starting
+                 from zero */
                 int qFirst = 0;
                 int qLast = 0;
                 for (int rx = 0; rx <= rad; rx++)
@@ -1027,32 +1022,38 @@ public class SFCM {
 
                             if (y >= 0 && y < rows)
                             {
-                                //mem += mat[y][rx];
                                 mem += U[y * cols + rx][k];
                             }
                         }
+                        /* Adding a new column */
                         supC[qLast] = mem;
                         qLast++;
                         h += mem;
                     }
                 }
                 int j = 0, col, y;
-                //System.out.println("i " + i + " j " + j + "h " + h);
+
+                /* We can already compute the summed window value for the first
+                 element of the row in matrix form */
                 uPTimeshQ = Math.pow(U[i * cols][k], p) *
                             Math.pow(h, q);
                 uPhQ[i * cols][k] = uPTimeshQ;
                 uPhQ[i * cols][nClusters] += uPTimeshQ;
 
+                /* Now we cycle through the columns*/
                 qFirst = 0;
                 qLast = rad + 1;
                 for (j = 1; j < cols; j++)
                 {
                     col = j + rad;
+                    /* If we can, we remove the first column in supC */
                     if (j - rad > 0)
                     {
                         h -= supC[qFirst];
                         qFirst++;
                     }
+                    /* and if we have not reached the last usable column we add
+                     another value to supC at the end of the queue*/
                     if (j + rad < cols)
                     {
                         double mem = 0;
@@ -1062,17 +1063,15 @@ public class SFCM {
 
                             if (y >= 0 && y < rows)
                             {
-                                //mem += mat[y][col];
                                 mem += U[y * cols + col][k];
-
                             }
                         }
                         supC[qLast] = mem;
                         qLast++;
                         h += mem;
-
                     }
-                    //System.out.println("i " + i + " j " + j + "h " + h);
+
+                    /* In the end we compute the exponentiated value and store it */
                     int offset = i * cols + j;
                     uPTimeshQ = Math.pow(U[offset][k], p) *
                                 Math.pow(h, q);
@@ -1081,7 +1080,8 @@ public class SFCM {
                 }
             }
         }
-        
+
+        /* Updating U after all the values have been computed */
         for(int i = 0; i < U.length; i++)
         {
             double denominatorSum = uPhQ[i][nClusters];
@@ -1093,12 +1093,36 @@ public class SFCM {
         return U;
     }
 
+    /**
+     * Computes the update rule of the membership matrix <code>U</code> according
+     * to the <i>Spatial Fuzzy C-Mean</i> algorithm.
+     * It implements the spatial function as the number of the cluster membership values that
+     * are the greates for every pixel in the neighborhood. So it will compute
+     * a defuzzyfied version of U and apply the computation on it.
+     * An optimization is implemented when computing the neighbourhood window.
+     * An array, with length equal to the
+     * number of the matrix columns, is used as a queue to compute che sum of the
+     * window column values and to efficiently and incrementally move the window
+     * along the columns. For each row the array is initially recomputed from scratch.
+     * @param U the cluster membership matrix to update
+     * @param rad the window radius
+     * @param p the membership weight
+     * @param q the spatial function weight
+     * @param cols the number of columns in matrix form
+     * @param supC the array acting as a queue, if null it will be allocated
+     * @param uPhQ a support matrix used to store intermediate computed values,
+     * if null it will be allocated
+     * @param G a support matrix used as
+     * @return the updated cluster membership value
+     */
     private static float [][] opt1UpdateMembershipsWithSpatialFunctionG(float [][] U, int rad,
                                                                         double p, double q,
                                                                         int cols, double [] supC,
                                                                         double [][] uPhQ,
                                                                         short [][] G){
         int nClusters = U[0].length;
+
+        /* Allocating the needed support data structures if null */
         if(uPhQ == null)
         {
             uPhQ = new double[U.length][nClusters + 1];
@@ -1115,7 +1139,7 @@ public class SFCM {
         /* Allocating a support array for checking if a column of G goes to 0*/
         int [] g0count = new int [nClusters];
 
-        /* Computing the G matrix just once */
+        /* Computing the G matrix just once as a defuzzyfied version of U */
         for (int i = 0; i < G.length; ++i)
         {
             double max = U[i][0];
@@ -1134,17 +1158,23 @@ public class SFCM {
         
         int rows = U.length / cols;
 
+        /* Zeroing the uPhQ support matrix */
         for(int i = 0; i < U.length; i++)
         {
             uPhQ[i][nClusters] = 0;
         }
 
         double uPTimeshQ  = 0;
+        /* For each column of U*/
         for(int k = 0; k < nClusters; k++)
         {
+            /* Moving along rows but considering the data sample in matrix form
+               rows * cols */
             for (int i = 0; i < rows; ++i)
             {
                 int h = 0;
+                /* For each new row of the matrix form we recompute supC starting
+                   from zero */
                 int qFirst = 0;
                 int qLast = 0;
                 for (int rx = 0; rx <= rad; rx++)
@@ -1158,21 +1188,23 @@ public class SFCM {
 
                             if (y >= 0 && y < rows)
                             {
-                                //mem += mat[y][rx];
                                 mem += G[y * cols + rx][k];
                             }
                         }
+                        /* Adding a new column */
                         supC[qLast] = mem;
                         qLast++;
                         h += mem;
                     }
                 }
                 int j = 0, col, y;
-                //System.out.println("i " + i + " j " + j + "h " + h);
+                /* If h goes to zero we must keep track of it */
                 if (h == 0)
                 {
                     g0count[k]++;
                 }
+                /* We can already compute the summed window value for the first
+                 element of the row in matrix form */
                 uPTimeshQ = Math.pow(U[i * cols][k], p) *
                             Math.pow(h, q);
                 uPhQ[i * cols][k] = uPTimeshQ;
@@ -1180,14 +1212,19 @@ public class SFCM {
 
                 qFirst = 0;
                 qLast = rad + 1;
+                
+                /* Now we cycle through the columns*/
                 for (j = 1; j < cols; j++)
                 {
                     col = j + rad;
+                    /* If we can, we remove the first column in supC */
                     if (j - rad > 0)
                     {
                         h -= supC[qFirst];
                         qFirst++;
                     }
+                    /* and if we have not reached the last usable column we add
+                       another value to supC at the end of the queue*/
                     if (j + rad < cols)
                     {
                         int mem = 0;
@@ -1197,9 +1234,7 @@ public class SFCM {
 
                             if (y >= 0 && y < rows)
                             {
-                                //mem += mat[y][col];
                                 mem += G[y * cols + col][k];
-
                             }
                         }
                         supC[qLast] = mem;
@@ -1207,7 +1242,7 @@ public class SFCM {
                         h += mem;
 
                     }
-                    //System.out.println("i " + i + " j " + j + "h " + h);
+                    /* Again we must check if h equals zero */
                     if (h == 0)
                     {
                         g0count[k]++;
@@ -1234,6 +1269,7 @@ public class SFCM {
             }
         }
 
+        /* Updating U after all the values have been computed */
         for(int i = 0; i < U.length; i++)
         {
             double denominatorSum = uPhQ[i][nClusters];
@@ -1514,6 +1550,7 @@ public class SFCM {
     /**
      * Precomputes in a samples x 2 matrix the matrix form indices associated
      * to each array form indices.
+     * Deprecated.
      * @param offset the number of samples
      * @param width the number of columns of the matrix form
      * @return the instantiated precomputed matrix
@@ -1533,6 +1570,7 @@ public class SFCM {
     /**
      * Precomputes in a rows x columns matrix the array form indices associated
      * to each pair of matrix form indices.
+     * Deprecated.
      * @param rows the number of rows in matrix form
      * @param columns the number of columns in matrix form
      * @return the instantiated and precomputed matrix
@@ -1615,14 +1653,18 @@ public class SFCM {
         System.out.println("\n\nUM\n\n");
         //printMatrix(Um);
 
-        int [][] xy = precomputeMatrixForm(X.length, width);
-        int [][] offset = precomputeArrayForm(X.length / width, width);
+//        int [][] xy = precomputeMatrixForm(X.length, width);
+//        int [][] offset = precomputeArrayForm(X.length / width, width);
+
+        /* Support data structures */
         double [][] uPhQ = null;
         double [] colCached = null;
         double [][] integralU = null;
         short [][] gCached = null;
         int [][] integralG = null;
 
+        /* Allocating oldU and oldV only if testing or an appropriate stop
+         criterion has been chosen */
         float [][] oldU = null;
         if (stopCriterion == 0 || stopCriterion == 2 || testing)
         {
@@ -1638,30 +1680,23 @@ public class SFCM {
         float oldJ = 0; //computeObjectiveFunction(X, U, V, D);
         float distance = Float.MAX_VALUE;
 
+        /* Cycling till the number of iterations gets past the max number allowed
+         or the convergence distance value is greater than a threshold tolerance */
         while (count < iterations && distance > tolerance)
         {
-//            System.out.println("it "+ count);
 
+            /* Updating the cluster centroid matrix */
             V = updateClusterCenterMatrix(X, Um, V);
-            //printMatrix(V);
-//            if (count < 2){
-//                System.out.println("\n\nV\n\n " + count);
-//                printMatrix(V);
-//            }
 
+            /* Computing the distance between the new centroids and the data */
             D = euclideanDistanceMatrix(X, V, D, m);
-//            if (count < 2){
-//                System.out.println("\n\nD\n\n " + count);
-//                printMatrix(D);
-//            }
-            
+
+            /* Updating the cluster membership matrix */
             U = updateClusterMembershipMatrix(X, U, V, m, D);
-//            if (count < 2){
-//                System.out.println("\n\nU\n\n " + count);
-//                printMatrix(U);
-//            }
 
-
+            /* If p == 1 and q == 0 OR r == 0 there is no need to call the
+             cluster membership matrix update spatial update since it will be
+             a classic Fuzzy C-Means version */
             if ((r != 0) && (p != 1.0 || q != 0.0))
             {
 //                U = updateMembershipsWithSpatialInformation(U, r, p, q, spatialFunction,
@@ -1693,31 +1728,18 @@ public class SFCM {
 
             }
 
-//                        if(count == 0){
-//                for (k = 0; k < X.length; k++){
-//                    System.out.println(U[k][2]);
-//                }
-//            }
-            
+            /* Exponentiating the cluster membership matrix */
             Um = computeExponentialMembership(U, Um, m);
 
+            /* Checking the convergence , only if we are not testing */
             if (!testing)
             {
                 distance = checkConvergence(U, oldU, V, oldV, stopCriterion);
             }
-            
-
-//            if (diffJ < tolerance)
-//            {
-//                converged = true;
-//            }
-//            else
-//            {
-
-//            }
 
             ++count;
 
+            /* If testing we must compute the convergence criterion on U, V and also J */
             if (testing)
             {
                 float diffJ, diffU, diffV;
@@ -1741,6 +1763,7 @@ public class SFCM {
                 delegate.updateStatus(null, null, count, distance);
             }
 
+            /* Updating oldU and oldV selectively according to the stop criterion */
             if (stopCriterion == 0 || stopCriterion == 2 || testing)
             {
                 matrixCopy(U, oldU);
@@ -1754,7 +1777,6 @@ public class SFCM {
 
         }
 
-        //U = computeClusterMembership(X, U, V, k);
         resultMatrixes[0] = U;
         resultMatrixes[1] = V;
         return resultMatrixes;

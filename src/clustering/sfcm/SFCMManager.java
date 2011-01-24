@@ -682,6 +682,7 @@ public class SFCMManager implements ClusteringDelegate{
         int [][] clusterMemberships = (int[][]) resultMatrixes[0];
         float [][] clusterCenters = (float[][]) resultMatrixes[1];
 
+        /* If a validation test is being run we must compute some validity indexes*/
         if (validation) {
             float[][] membershipMatrix = (float[][]) resultMatrixes[2];
             double vpc = ClusteringValidity.bezdekPartitionCoefficient(membershipMatrix);
@@ -700,9 +701,11 @@ public class SFCMManager implements ClusteringDelegate{
         }
 
         Object[] stacks = new Object[5];
-        //imgArray = new ImageStack[4];
+        
         int visualizationModes = 0;
 
+        /* Computing the encodings according the visualizaton modes selected by
+           the user*/
         if (grayScaleVisualization)
         {
             ImageStack imgsbp = new ImageStack(vp.getWidth(), vp.getHeight());
@@ -785,18 +788,18 @@ public class SFCMManager implements ClusteringDelegate{
        {
             final ImagePlus stack = convertToHSBFloatStack(imp);
             ImageStack ims = stack.getStack();
-            System.out.println("Stack slices "+ ims.getSize());
+            System.out.println("Stack slices " + ims.getSize());
             vp = new VectorProcessor(ims);
-            float [] hsb = vp.get(3, 44);
-
-            System.out.println("HS "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
+//            float [] hsb = vp.get(3, 44);
+//
+//            System.out.println("HS "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
        }
        else // if (colorSpace.equals("None"))
        {
             final ImagePlus stack = convertToFloatStack(imp);
             ImageStack ims = stack.getStack();
 
-            System.out.println("Stack slices "+ ims.getSize());
+            System.out.println("Stack slices " + ims.getSize());
             vp = new VectorProcessor(ims);
        }
 
