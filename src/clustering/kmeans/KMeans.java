@@ -189,7 +189,7 @@ public class KMeans {
         for (int i = 0; i < k; i++)
         {
             final float[] clusterCenter = clusterCenters[i];
-            final double d = euclideanDistance(clusterCenter, x);
+            final double d = euclideanDistanceSqr(clusterCenter, x);
             if (d < minDistance)
             {
                 minDistance = d;
@@ -216,6 +216,22 @@ public class KMeans {
         }
         //return sum;
         return Math.sqrt(sum);
+    }
+
+    /**
+     * Distance between points <code>a</code> and <code>b</code>.
+     * @param a first point.
+     * @param b second point.
+     * @return distance.
+     */
+    private static double euclideanDistanceSqr(final float[] a, final float[] b) {
+        double sum = 0;
+        for (int i = 0; i < a.length; i++) {
+            final double d = a[i] - b[i];
+            sum += d * d;
+        }
+        return sum;
+        //return Math.sqrt(sum);
     }
 
 
@@ -250,7 +266,7 @@ public class KMeans {
                 final float[] clusterCenter = V[i];
                 final float[] newClusterCenter = newClusterMeans[i].mean();
                 //clusterCenters[i] = newClusterCenter;
-                distanceSum += euclideanDistance(clusterCenter, newClusterCenter);
+                distanceSum += euclideanDistanceSqr(clusterCenter, newClusterCenter);
             }
 
             converged = distanceSum < tolerance;

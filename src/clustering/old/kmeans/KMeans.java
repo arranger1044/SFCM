@@ -227,7 +227,7 @@ public final class KMeans {
                 final float[] newClusterCenter = newClusterMeans[i].mean();
                 //clusterCenters[i] = newClusterCenter;
                 //System.out.println("NCC " + newClusterMeans[i].mean() + " count " + (count + 1) + " i: " + i );
-                distanceSum += KMeansUtils.distance(clusterCenter, newClusterCenter);
+                distanceSum += KMeansUtils.distanceSqr(clusterCenter, newClusterCenter);
             }
 
             converged = distanceSum < config.getTolerance();
@@ -299,8 +299,9 @@ public final class KMeans {
                 // Distance to closest cluster
                 final float[] v = vp.get(p.x, p.y);
                 final int cci = KMeansUtils.closestCluster(v, centersArray);
-                final double d = KMeansUtils.distance(v, centersArray[cci]);
-                sum += d * d;
+                final double d = KMeansUtils.distanceSqr(v, centersArray[cci]);
+                //sum += d * d;
+                sum += d;
                 dp2[offset] = sum;  // distribuzione cumulata   vettore di pixel nel quale metti la somma = d*d del pixel corrente e di tutti i precedenti.
             }
 

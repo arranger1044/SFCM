@@ -97,7 +97,8 @@ final class KMeansUtils {
         for (int i = 0; i < clusterCenters.length; i++)
         {
             final float[] clusterCenter = clusterCenters[i];
-            final double d = distance(clusterCenter, x);
+            //final double d = distance(clusterCenter, x);
+            final double d = distanceSqr(clusterCenter, x);
             if (d < minDistance)
             {
                 minDistance = d;
@@ -123,6 +124,22 @@ final class KMeansUtils {
             sum += d * d;
         }
         return Math.sqrt(sum);
+    }
+
+    /**
+     * Distance between points <code>a</code> and <code>b</code>, squared.
+     *
+     * @param a first point.
+     * @param b second point.
+     * @return distance.
+     */
+    static double distanceSqr(final float[] a, final float[] b) {
+        double sum = 0;
+        for (int i = 0; i < a.length; i++) {
+            final double d = a[i] - b[i];
+            sum += d * d;
+        }
+        return sum;
     }
 
 

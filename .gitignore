@@ -2,3 +2,4 @@
 /sandbox/
 .DS_Store
 *.log
+/test/plot/

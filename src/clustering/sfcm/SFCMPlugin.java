@@ -86,7 +86,7 @@ public class SFCMPlugin implements PlugIn{
         sFCMM = new SFCMManager();
 
         /* Create an instance of Generic Dialog */
-        GenericDialog configDialog = new GenericDialog("Fuzzy C-Means Configuration");
+        GenericDialog configDialog = new GenericDialog("Spatial Fuzzy C-Means Configuration");
         /* and configure it according to the defaults in KMeansManager */
         configDialog = configureDialog(sFCMM, configDialog);
         /* Show Dialog */
