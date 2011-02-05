@@ -6,6 +6,7 @@ _______
 
 This is a set of ImageJ plugins for color image segmentation. The set features four plugins:
 
+
 * The original K-Means plugin from Jarek Sacha's IJ Plugin Toolkit (that you can also find [here](http://ij-plugins.sourceforge.net/plugins/clustering/))
 * A refactored version of the original K-Means plugin providing color space selection (RGB, XYZ, L*a*b*, HSB), a simpler initialization criterion and a few more visualization modes
 * A Fuzzy C-Means variant introducing another initialization criterion plus a new visualization mode
