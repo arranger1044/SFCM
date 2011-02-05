@@ -200,7 +200,8 @@ public class FCMPlugin implements PlugIn{
     }
 
     private GenericDialog configureDialog(FCMManager FCMM, GenericDialog dialog){
-
+        dialog.addCheckbox("Enable_random_seeding", FCMM.getSeedEnabled());
+        dialog.addNumericField("Randomization_seed", FCMM.getRandomizationSeed(), 0);
         dialog.addNumericField("Number_of_clusters", FCMM.getNumberOfClusters(), 0);
         dialog.addNumericField("Max_number_of_iterations", FCMM.getMaxIterations(), 0);
         dialog.addChoice("Stop_criterion", FCMM.getStopCriterions(), FCMM.getStopCriterion());
@@ -208,7 +209,7 @@ public class FCMPlugin implements PlugIn{
         dialog.addChoice("Initialization Mode", FCMM.getInitModes(), FCMM.getInizializationMode());
 //        dialog.addCheckbox("Random_clusters_initialization", FCMM.getRandomInitialization());
 //        dialog.addCheckbox("KMeans++_clusters_initialization", FCMM.getKMeansPlusPlusInitialization());
-        dialog.addNumericField("Randomization_seed", FCMM.getRandomizationSeed(), 0);
+        
         dialog.addNumericField("Fuzzyness_parameter", FCMM.getFuzzyness(), 1);
         dialog.addChoice("Color_Space_Conversion", FCMM.getColorSpaces(), FCMM.getColorSpace());
         dialog.addCheckbox("Show_clusters_as_centroid_value", FCMM.getClusterCenterColorsVisualization());
@@ -220,6 +221,8 @@ public class FCMPlugin implements PlugIn{
     }
 
     private void getConfigurationFromDialog(GenericDialog dialog, FCMManager FCMM){
+        FCMM.setSeedEnabled(dialog.getNextBoolean());
+        FCMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
         FCMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
         FCMM.setMaxIterations(Math.round(dialog.getNextNumber()));
         FCMM.setStopCriterion(dialog.getNextChoice());
@@ -227,7 +230,7 @@ public class FCMPlugin implements PlugIn{
         FCMM.setInitializationMode(dialog.getNextChoice());
 //        FCMM.setRandomInitialization(dialog.getNextBoolean());
 //        FCMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
-        FCMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
+        
         FCMM.setFuzzyness(dialog.getNextNumber());
         FCMM.setColorSpace(dialog.getNextChoice());
         FCMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());

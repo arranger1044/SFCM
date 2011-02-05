@@ -43,6 +43,7 @@ public class SFCM {
      * @param X data matrix, a samples x features matrix
      * @param k number of clusters
      * @param tolerance threashold used for checking the convergence of the algorithm
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed the randomization seed used for generating random numbers
      * @param initMode an integer that specifies the initialization mode for the
      * matrixes <code>U</code> and <code>V</code>.
@@ -85,7 +86,7 @@ public class SFCM {
      * @see ClusteringDelegate
      * @see #defuzzyfyClusterMemberships(float[][])
      */
-    public static Object[] run (float [][] X, int k, double tolerance,
+    public static Object[] run (float [][] X, int k, double tolerance, boolean seedEnabled,
                                 int randomSeed, int initMode,
                                 ClusteringDelegate delegate,
                                 double m, long iterations, int stopCriterion,
@@ -98,7 +99,7 @@ public class SFCM {
         float [][] U = new float [X.length][k];
 
         /* Initializing U and V according to 'initMode' */
-        initializeMatrixes(X, V, U, k, randomSeed, initMode, m);
+        initializeMatrixes(X, V, U, k, seedEnabled, randomSeed, initMode, m);
 
         /* Starting the clustering algorithm */
         Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, 
@@ -122,6 +123,7 @@ public class SFCM {
      * @param V cluster center matrix to be initialized
      * @param U cluster membership matrix to be initialized
      * @param k number of clusters
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed randomization seed used to generate a random sequence
      * @param initMode an integer that specifies the initialization mode for the
      * matrixes <code>U</code> and <code>V</code>.
@@ -143,7 +145,7 @@ public class SFCM {
      * @see #initializeClusterMembershipRandom(float[][], int, int)
      */
     private static Object [] initializeMatrixes(float [][] X, float [][] V, 
-                                                float [][] U, int k, 
+                                                float [][] U, int k, boolean seedEnabled,
                                                 int randomSeed, int initMode,
                                                 double m){
         
@@ -154,21 +156,21 @@ public class SFCM {
         {
             case 0:
                 /* Random initialization on V first, then U is updated */
-                V = randomInitialization(X, V, k, randomSeed);
+                V = randomInitialization(X, V, k, seedEnabled, randomSeed);
                 D = euclideanDistanceMatrix(X, V, D, m);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
                 System.out.println("Random V");
                 break;
             case 1:
                 /* K-Means++ initialization on V, then U is updated */
-                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                V = kMeansPlusPlusInitialization(X, V, k, seedEnabled, randomSeed);
                 D = euclideanDistanceMatrix(X, V, D, m);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
                 System.out.println("K-Means++");
                 break;
             case 2:
                 /* Random initialization on U, no need to update V */
-                U = initializeClusterMembershipRandom(U, k, randomSeed);
+                U = initializeClusterMembershipRandom(U, k, seedEnabled, randomSeed);
                 System.out.println("Random U");
                 break;
             default:
@@ -217,14 +219,17 @@ public class SFCM {
      * membership values for a pixel equal one.
      * @param U cluster membership matrix to be initialized
      * @param k number of clusters
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed randomization seed used to generate a random sequence
      * @return the initialized cluster membership matrix
      * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
      */
-    private static float [][] initializeClusterMembershipRandom(float [][] U, int k, int randomSeed){
+    private static float [][] initializeClusterMembershipRandom(float [][] U, int k,
+                                                                boolean seedEnabled,
+                                                                int randomSeed){
 
         int nClusters = U[0].length;
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         for (int i = 0; i < U.length; i++)
         {
             float sum = 0;
@@ -247,13 +252,15 @@ public class SFCM {
      * @param X data matrix
      * @param V cluster centroid matrix to be initialized
      * @param k number of clusters
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed randomization seed used to generate a random sequence
      * @return the initialized cluster matrix
      * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
      */
-    private static float[][] randomInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] randomInitialization(float [][] X, float [][] V, int k,
+                                                  boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -287,13 +294,15 @@ public class SFCM {
      * @param X the data matrix
      * @param V the centroid matrix to be initialized
      * @param k the number of clusters
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed randomization seed used to generate a random sequence
      * @return the initialized cluster center matrix
      * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
      */
-    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k,
+                                                          boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -355,15 +364,18 @@ public class SFCM {
 
     /**
      * Creates a <i>Random</i> instance using a seed
+     * @param seedEnabled boolean true if a random sequence is generated from a seed
      * @param randomSeed an integer used to generate the Random instance
      * @return the created instance
      * @see #initializeMatrixes(float[][], float[][], float[][], int, int, int, double)
      */
-    private static Random createRandom(int randomSeed) {
+    private static Random createRandom(boolean seedEnabled, int randomSeed) {
 //        return config.isRandomizationSeedEnabled()
 //                ? new Random(config.getRandomizationSeed())
 //                : new Random();
-        return new Random(randomSeed);
+        return (seedEnabled ?
+            new Random(randomSeed)
+            : new Random());
     }
 
     /**

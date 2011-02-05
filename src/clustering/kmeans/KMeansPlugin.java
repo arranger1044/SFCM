@@ -177,12 +177,14 @@ public class KMeansPlugin implements PlugIn{
 
     private GenericDialog configureDialog(KMeansManager KMM, GenericDialog dialog){
         
+        dialog.addCheckbox("Enable_random_seeding", KMM.getSeedEnabled());
+        dialog.addNumericField("Randomization_seed", KMM.getRandomizationSeed(), 0);
         dialog.addNumericField("Number_of_clusters", KMM.getNumberOfClusters(), 0);
         dialog.addNumericField("Cluster_center_tolerance", KMM.getTolerance(), 8);
         dialog.addChoice("Initialization Mode", KMM.getInitModes(), KMM.getInizializationMode());
 //        dialog.addCheckbox("Random_clusters_initialization", KMM.getRandomInitialization());
 //        dialog.addCheckbox("KMeans++_clusters_initialization", KMM.getKMeansPlusPlusInitialization());
-        dialog.addNumericField("Randomization_seed", KMM.getRandomizationSeed(), 0);
+        
         dialog.addChoice("Color_Space_Conversion", KMM.getColorSpaces(), KMM.getColorSpace());
         dialog.addCheckbox("Show_clusters_as_centroid_value", KMM.getClusterCenterColorsVisualization());
         dialog.addCheckbox("Show_clusters_as_random_RGB", KMM.getRandomRGBVisualization());
@@ -192,12 +194,14 @@ public class KMeansPlugin implements PlugIn{
     }
 
     private void getConfigurationFromDialog(GenericDialog dialog, KMeansManager KMM){
+        KMM.setSeedEnabled(dialog.getNextBoolean());
+        KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
         KMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
         KMM.setTolerance((float) dialog.getNextNumber());
         KMM.setInitializationMode(dialog.getNextChoice());
 //        KMM.setRandomInitialization(dialog.getNextBoolean());
 //        KMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
-        KMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
+        
         KMM.setColorSpace(dialog.getNextChoice());
         KMM.setClusterCenterColorsVisualization(dialog.getNextBoolean());
         KMM.setRandomRGBVisualization(dialog.getNextBoolean());

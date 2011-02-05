@@ -18,13 +18,14 @@ public class KMeans {
     }
 
     public static Object[] run (float [][] X, int k, double tolerance,
-                                int randomSeed, int initMode,
+                                int randomSeed, int initMode, boolean seedEnabled,
                                 ClusteringDelegate delegate){
 
         float [][] V = new float[k][X[0].length];
         int [][] U = new int [X.length][k];
 
-        V = initializeClusterCenterMatrix(X, V, k, randomSeed, initMode, delegate);
+        V = initializeClusterCenterMatrix(X, V, k, seedEnabled, randomSeed,
+                                          initMode, delegate);
         U = computeClusterMembership(X, U, V, k);
 
         return clusterize(X, U, V, k, tolerance, delegate);
@@ -33,6 +34,7 @@ public class KMeans {
     private static float [][] initializeClusterCenterMatrix(float [][] X,
                                                             float [][] V,
                                                             int k,
+                                                            boolean seedEnabled,
                                                             int randomSeed,
                                                             int initMode,
                                                             ClusteringDelegate delegate){
@@ -42,11 +44,11 @@ public class KMeans {
         switch(initMode)
         {
             case 0:
-                V = randomInitialization(X, V, k, randomSeed);
+                V = randomInitialization(X, V, k, seedEnabled, randomSeed);
                 System.out.println("Random");
                 break;
             case 1:
-                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                V = kMeansPlusPlusInitialization(X, V, k, seedEnabled, randomSeed);
                 System.out.println("K-Means++");
                 break;
             default:
@@ -61,9 +63,10 @@ public class KMeans {
         return V;
     }
 
-    private static float[][] randomInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] randomInitialization(float [][] X, float [][] V, int k,
+                                                  boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -86,9 +89,10 @@ public class KMeans {
         return V;
     }
 
-    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k,
+                                                          boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -167,11 +171,13 @@ public class KMeans {
         return U;
     }
 
-    private static Random createRandom(int randomSeed) {
+    private static Random createRandom(boolean seedEnabled, int randomSeed) {
 //        return config.isRandomizationSeedEnabled()
 //                ? new Random(config.getRandomizationSeed())
 //                : new Random();
-        return new Random(randomSeed);
+        return (seedEnabled ?
+            new Random(randomSeed)
+            : new Random());
     }
 
     /**

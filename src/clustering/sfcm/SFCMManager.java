@@ -38,6 +38,11 @@ import vectorLib.VectorProcessor;
 public class SFCMManager implements ClusteringDelegate{
 
    /**
+    * Boolean used to check if a random sequence has to be seeded
+    * @see #randomizationSeed
+    */
+   private boolean seedEnabled = true;
+   /**
     * The integer used to generate a random sequence
     * Default value is 48
     * @see Random
@@ -201,6 +206,24 @@ public class SFCMManager implements ClusteringDelegate{
     * @see ClusteringValidity
     */
    private boolean validation = false;
+
+   /**
+    * Public getter for <code>seedEnabled</code>
+    * @return the boolean value set
+    * @see #seedEnabled
+    */
+   public boolean getSeedEnabled(){
+       return seedEnabled;
+   }
+
+   /**
+    * Public setter for <code>seedEnabled</code>
+    * @param enabled the new boolean value to set
+    * @see #seedEnabled
+    */
+   public void setSeedEnabled(boolean enabled){
+       seedEnabled = enabled;
+   }
 
    /**
     * Public getter for <code>randomizationSeed</code>
@@ -670,6 +693,7 @@ public class SFCMManager implements ClusteringDelegate{
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = SFCM.run(imageData, numberOfClusters, tolerance,
+                                             seedEnabled,
                                              randomizationSeed, initMode, this,
                                              fuzzyness, maxIterations, stopCrit,
                                              windowRadius, membershipWeight,

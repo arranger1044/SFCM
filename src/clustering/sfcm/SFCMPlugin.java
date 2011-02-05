@@ -299,6 +299,8 @@ public class SFCMPlugin implements PlugIn{
      */
     private GenericDialog configureDialog(SFCMManager sFCMM, GenericDialog dialog){
 
+        dialog.addCheckbox("Enable_random_seeding", sFCMM.getSeedEnabled());
+        dialog.addNumericField("Randomization_seed", sFCMM.getRandomizationSeed(), 0);
         dialog.addNumericField("Number_of_clusters", sFCMM.getNumberOfClusters(), 0);
         dialog.addNumericField("Max_number_of_iterations", sFCMM.getMaxIterations(), 0);
         dialog.addChoice("Stop_criterion", sFCMM.getStopCriterions(), sFCMM.getStopCriterion());
@@ -306,7 +308,7 @@ public class SFCMPlugin implements PlugIn{
         dialog.addChoice("Initialization Mode", sFCMM.getInitModes(), sFCMM.getInizializationMode());
 //        dialog.addCheckbox("Random_clusters_initialization", sFCMM.getRandomInitialization());
 //        dialog.addCheckbox("KMeans++_clusters_initialization", sFCMM.getKMeansPlusPlusInitialization());
-        dialog.addNumericField("Randomization_seed", sFCMM.getRandomizationSeed(), 0);
+
         dialog.addNumericField("Fuzzyness_parameter", sFCMM.getFuzzyness(), 1);
         dialog.addNumericField("Window_radius", sFCMM.getWindowRadius(), 0);
         dialog.addNumericField("Membership_weight", sFCMM.getMembershipWeight(), 1);
@@ -329,6 +331,8 @@ public class SFCMPlugin implements PlugIn{
      * @param sFCMM the @link{SFCMManager} instace that runs the algorithm
      */
     private void getConfigurationFromDialog(GenericDialog dialog, SFCMManager sFCMM){
+        sFCMM.setSeedEnabled(dialog.getNextBoolean());
+        sFCMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
         sFCMM.setNumberOfClusters((int) Math.round(dialog.getNextNumber()));
         sFCMM.setMaxIterations(Math.round(dialog.getNextNumber()));
         sFCMM.setStopCriterion(dialog.getNextChoice());
@@ -336,7 +340,7 @@ public class SFCMPlugin implements PlugIn{
         sFCMM.setInitializationMode(dialog.getNextChoice());
 //        sFCMM.setRandomInitialization(dialog.getNextBoolean());
 //        sFCMM.setKMeansPlusPlusInitialization(dialog.getNextBoolean());
-        sFCMM.setRandomizationSeed((int) Math.round(dialog.getNextNumber()));
+
         sFCMM.setFuzzyness(dialog.getNextNumber());
         sFCMM.setWindowRadius((int) Math.round(dialog.getNextNumber()));
         sFCMM.setMembershipWeight(dialog.getNextNumber());

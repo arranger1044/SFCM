@@ -27,6 +27,7 @@ import vectorLib.VectorProcessor;
  */
 public class FCMManager implements ClusteringDelegate{
 
+   private boolean seedEnabled = true;
    private int randomizationSeed = 48;
    private double tolerance = 0.0001;
    private int numberOfClusters = 4;
@@ -49,6 +50,24 @@ public class FCMManager implements ClusteringDelegate{
 
    private RandomAccessFile RAF = null;
    private boolean testing = false;
+
+   /**
+    * Public getter for <code>seedEnabled</code>
+    * @return the boolean value set
+    * @see #seedEnabled
+    */
+   public boolean getSeedEnabled(){
+       return seedEnabled;
+   }
+
+   /**
+    * Public setter for <code>seedEnabled</code>
+    * @param enabled the new boolean value to set
+    * @see #seedEnabled
+    */
+   public void setSeedEnabled(boolean enabled){
+       seedEnabled = enabled;
+   }
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -220,6 +239,7 @@ public class FCMManager implements ClusteringDelegate{
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = FCM.run(imageData, numberOfClusters, tolerance,
+                                             seedEnabled,
                                              randomizationSeed, initMode, this,
                                              fuzzyness, maxIterations, stopCrit, testing);
         final long endTime = System.currentTimeMillis();

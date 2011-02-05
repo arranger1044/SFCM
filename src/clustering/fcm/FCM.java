@@ -18,7 +18,7 @@ public class FCM {
     private FCM(){
     }
 
-    public static Object[] run (float [][] X, int k, double tolerance,
+    public static Object[] run (float [][] X, int k, double tolerance, boolean seedEnabled,
                                 int randomSeed, int initMode,
                                 ClusteringDelegate delegate,
                                 double m, long iterations, int stopCriterion,
@@ -27,7 +27,7 @@ public class FCM {
         float [][] V = new float[k][X[0].length];
         float [][] U = new float [X.length][k];
 
-        initializeMatrixes(X, V, U, k, randomSeed, initMode, m);
+        initializeMatrixes(X, V, U, k, seedEnabled, randomSeed, initMode, m);
 
         Object[] clusteredMatrixes = clusterize(X, U, V, k, tolerance, delegate, 
                                                 m, iterations, stopCriterion, testing);
@@ -39,7 +39,8 @@ public class FCM {
     }
 
     private static Object [] initializeMatrixes(float [][] X, float [][] V, 
-                                                float [][] U, int k, 
+                                                float [][] U, int k,
+                                                boolean seedEnabled,
                                                 int randomSeed, int initMode,
                                                 double m){
         
@@ -49,13 +50,13 @@ public class FCM {
         switch(initMode)
         {
             case 0:
-                V = randomInitialization(X, V, k, randomSeed);
+                V = randomInitialization(X, V, k, seedEnabled, randomSeed);
                 D = euclideanDistanceMatrix(X, V, D, m);
                 U = updateClusterMembershipMatrix(X, U, V, m, D);
                 System.out.println("Random V");
                 break;
             case 1:
-                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                V = kMeansPlusPlusInitialization(X, V, k, seedEnabled, randomSeed);
                 //printMatrix(V);
                 D = euclideanDistanceMatrix(X, V, D, m);
                 //printMatrix(D);
@@ -66,7 +67,7 @@ public class FCM {
                 
                 break;
             case 2:
-                U = initializeClusterMembershipRandom(U, k, randomSeed);
+                U = initializeClusterMembershipRandom(U, k, seedEnabled, randomSeed);
                 System.out.println("Random U");
                 break;
             default:
@@ -79,6 +80,7 @@ public class FCM {
                                                             float [][] V,
                                                             int k,
                                                             int randomSeed,
+                                                            boolean seedEnabled,
                                                             int initMode,
                                                             ClusteringDelegate delegate){
 
@@ -87,11 +89,11 @@ public class FCM {
         switch(initMode)
         {
             case 0:
-                V = randomInitialization(X, V, k, randomSeed);
+                V = randomInitialization(X, V, k, seedEnabled, randomSeed);
                 System.out.println("Random");
                 break;
             case 1:
-                V = kMeansPlusPlusInitialization(X, V, k, randomSeed);
+                V = kMeansPlusPlusInitialization(X, V, k, seedEnabled, randomSeed);
                 System.out.println("K-Means++");
                 break;
             default:
@@ -128,10 +130,11 @@ public class FCM {
         }
     }
 
-    private static float [][] initializeClusterMembershipRandom(float [][] U, int k, int randomSeed){
+    private static float [][] initializeClusterMembershipRandom(float [][] U, int k,
+                                                                boolean seedEnabled, int randomSeed){
 
         int nClusters = U[0].length;
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         for (int i = 0; i < U.length; i++)
         {
             float sum = 0;
@@ -149,9 +152,10 @@ public class FCM {
         return U;
     }
 
-    private static float[][] randomInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] randomInitialization(float [][] X, float [][] V, int k,
+                                                  boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -174,9 +178,10 @@ public class FCM {
         return V;
     }
 
-    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k, int randomSeed) {
+    private static float[][] kMeansPlusPlusInitialization(float [][] X, float [][] V, int k,
+                                                          boolean seedEnabled, int randomSeed) {
 
-        final Random random = createRandom(randomSeed);
+        final Random random = createRandom(seedEnabled, randomSeed);
         final int nbPixels = X.length;
         final int nFeatures = X[0].length;
 
@@ -235,11 +240,13 @@ public class FCM {
         return V;
     }
 
-    private static Random createRandom(int randomSeed) {
+    private static Random createRandom(boolean seedEnabled, int randomSeed) {
 //        return config.isRandomizationSeedEnabled()
 //                ? new Random(config.getRandomizationSeed())
 //                : new Random();
-        return new Random(randomSeed);
+        return (seedEnabled ?
+            new Random(randomSeed)
+            : new Random());
     }
 
     /**

@@ -26,6 +26,7 @@ import vectorLib.VectorProcessor;
 
 public class KMeansManager implements ClusteringDelegate{
 
+   private boolean seedEnabled = true;
    private int randomizationSeed = 48;
    private double tolerance = 0.0001;
    private int numberOfClusters = 4;
@@ -39,6 +40,24 @@ public class KMeansManager implements ClusteringDelegate{
    private String colorSpace = "None";
    private int imageType;
    private boolean printOnConsole = true;
+
+   /**
+    * Public getter for <code>seedEnabled</code>
+    * @return the boolean value set
+    * @see #seedEnabled
+    */
+   public boolean getSeedEnabled(){
+       return seedEnabled;
+   }
+
+   /**
+    * Public setter for <code>seedEnabled</code>
+    * @param enabled the new boolean value to set
+    * @see #seedEnabled
+    */
+   public void setSeedEnabled(boolean enabled){
+       seedEnabled = enabled;
+   }
 
    public int getRandomizationSeed() {
         return randomizationSeed;
@@ -147,7 +166,7 @@ public class KMeansManager implements ClusteringDelegate{
         /* Calling the clustering algorithm */
         final long startTime = System.currentTimeMillis();
         Object[] resultMatrixes = KMeans.run(imageData, numberOfClusters, tolerance,
-                                             randomizationSeed, initMode, this);
+                                             randomizationSeed, initMode, seedEnabled, this);
         final long endTime = System.currentTimeMillis();
         final String message = "Clustering completed in " + (endTime - startTime) + " ms.";
         updateStatus(message);
