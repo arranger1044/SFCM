@@ -1362,4 +1362,11 @@ public class SFCMManager implements ClusteringDelegate{
         RAF.writeBytes(message);
     }
 
+    public String getConfigurationString(){
+        String config = " k:" + numberOfClusters + " m:" + fuzzyness + " rnd:" +
+                randomizationSeed + " init:" + initializationMode + " p:" + 
+                membershipWeight + " q:" + spatialFunctionWeight + " r:" + windowRadius
+                + " cs:" + colorSpace + " stc:" + stopCriterion;
+        return config;
+    }
 }

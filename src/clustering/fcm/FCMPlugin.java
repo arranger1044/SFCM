@@ -36,7 +36,7 @@ public class FCMPlugin implements PlugIn{
 
     /* Creating an array of illegal Image types */
     private static final int[] illegalImages = {ImagePlus.COLOR_256};
-    private FCMManager FCMM;
+    private static FCMManager staticFCMM = new FCMManager();
 
     @Override
     public void run(String arg) {
@@ -59,12 +59,12 @@ public class FCMPlugin implements PlugIn{
         }
 
         /* Create an instance of KMeansManager */
-        FCMM = new FCMManager();
+        FCMManager FCMM = new FCMManager();
 
         /* Create an instance of Generic Dialog */
         GenericDialog configDialog = new GenericDialog("Fuzzy C-Means Configuration");
         /* and configure it according to the defaults in KMeansManager */
-        configDialog = configureDialog(FCMM, configDialog);
+        configDialog = configureDialog(staticFCMM, configDialog);
         /* Show Dialog */
         configDialog.showDialog();
         if (configDialog.wasCanceled())
@@ -130,6 +130,8 @@ public class FCMPlugin implements PlugIn{
 
             r.show();
         }
+
+        staticFCMM = FCMM;
     }
 
     private boolean validateImage(ImagePlus img){

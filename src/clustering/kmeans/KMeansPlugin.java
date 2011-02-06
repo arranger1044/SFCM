@@ -40,7 +40,7 @@ public class KMeansPlugin implements PlugIn{
 
     /* Creating an array of illegal Image types */
     private static final int[] illegalImages = {ImagePlus.COLOR_256};
-    private KMeansManager KMM;
+    private static KMeansManager staticKMM = new KMeansManager();
 
     @Override
     public void run(String arg) {
@@ -63,12 +63,12 @@ public class KMeansPlugin implements PlugIn{
         }
 
         /* Create an instance of KMeansManager */
-        KMM = new KMeansManager();
+        KMeansManager KMM = new KMeansManager();
 
         /* Create an instance of Generic Dialog */
         GenericDialog configDialog = new GenericDialog("K-means Configuration");
         /* and configure it according to the defaults in KMeansManager */
-        configDialog = configureDialog(KMM, configDialog);
+        configDialog = configureDialog(staticKMM, configDialog);
         /* Show Dialog */
         configDialog.showDialog();
         if (configDialog.wasCanceled())
@@ -140,6 +140,8 @@ public class KMeansPlugin implements PlugIn{
             
             r.show();
         }
+
+        staticKMM = KMM;
     }
 
     private boolean validateImage(ImagePlus img){

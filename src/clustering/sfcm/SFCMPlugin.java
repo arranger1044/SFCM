@@ -47,7 +47,7 @@ public class SFCMPlugin implements PlugIn{
     /**
      * The instance of the @link{SFCMManager}
      */
-    private SFCMManager sFCMM;
+    private static SFCMManager staticSFCMM = new SFCMManager();
 
     /**
      *  Overridden method of the one provided by the @link{PlugIn} interface in ImageJ
@@ -82,13 +82,15 @@ public class SFCMPlugin implements PlugIn{
             return;
         }
 
+        SFCMManager sFCMM = null;
         /* Create an instance of KMeansManager */
         sFCMM = new SFCMManager();
+
 
         /* Create an instance of Generic Dialog */
         GenericDialog configDialog = new GenericDialog("Spatial Fuzzy C-Means Configuration");
         /* and configure it according to the defaults in KMeansManager */
-        configDialog = configureDialog(sFCMM, configDialog);
+        configDialog = configureDialog(staticSFCMM, configDialog);
         /* Show Dialog */
         configDialog.showDialog();
         if (configDialog.wasCanceled())
@@ -136,7 +138,7 @@ public class SFCMPlugin implements PlugIn{
             if (IP.getClass() == ij.process.ByteProcessor.class && slices == 1)
             {
                 adjustBrightness(IP, sFCMM.getNumberOfClusters());
-                r = new ImagePlus("Clusters in Gray Scale", IP);
+                r = new ImagePlus("Gray Scale" + sFCMM.getConfigurationString(), IP);
             }
             else if (IP.getClass() == ij.process.FloatProcessor.class)
             {
@@ -146,13 +148,15 @@ public class SFCMPlugin implements PlugIn{
             }
             else
             {
-                r = new ImagePlus("Clusters", imgArray[i]);
+                r = new ImagePlus("Clusters" + sFCMM.getConfigurationString(), imgArray[i]);
             }
 
             //System.out.println(type);
 
             r.show();
         }
+
+        staticSFCMM = sFCMM;
     }
 
     /**
