@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>SFCM by arranger1044</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>SFCM</h1>
+        <p>Spatial Fuzzy C-Means in ImageJ. A variant of the Fuzzy C-Means algorithm for color image segmentation that uses the spatial information computed in the neighborhood of each pixel</p>
+
+        <p class="view"><a href="https://github.com/arranger1044/SFCM">View the Project on GitHub <small>arranger1044/SFCM</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/arranger1044/SFCM/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/arranger1044/SFCM/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/arranger1044/SFCM">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="sfcm" class="anchor" href="#sfcm" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SFCM</h1>
+
+<h1>
+<a id="authors" class="anchor" href="#authors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors</h1>
+
+<hr>
+
+<p>Antonio Vergari and Francesco Tangari</p>
+
+<h3>
+<a id="advisors" class="anchor" href="#advisors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Advisors</h3>
+
+<p>Laura Caponetti <a href="mailto:laura.caponetti@uniba.it">laura.caponetti@uniba.it</a> and Giovanna Castellano <a href="mailto:giovanna.castellano@uniba.it">giovanna.castellano@uniba.it</a></p>
+
+<h2>
+<a id="development-and-history" class="anchor" href="#development-and-history" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development and history</h2>
+
+<p>Latest version is 1.2 developed in 2011.</p>
+
+<h3>
+<a id="imagej" class="anchor" href="#imagej" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ImageJ</h3>
+
+<p>Developed under ImageJ 1.38</p>
+
+<h1>
+<a id="source" class="anchor" href="#source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Source</h1>
+
+<p><a href="https://github.com/arranger1044/SFCM">https://github.com/arranger1044/SFCM</a></p>
+
+<h1>
+<a id="binaries" class="anchor" href="#binaries" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Binaries</h1>
+
+<p>You can find the plugin as a <code>jar</code> file under the <code>Releases</code> directory
+<a href="https://github.com/arranger1044/SFCM/blob/master/Releases/1.2/sfcm_clustering.jar">Version 1.2</a></p>
+
+<h1>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>Put the <code>sfcm_clustering.jar</code> file into the ImageJ <code>plugins</code> folder and re-launch it. Under the menu <code>Plugin&gt;Segmentation</code>, you will find four new plugins:</p>
+
+<pre><code>- Jarek Sacha's K-Means Clustering the original K-Means plugin by Jarek Sacha
+-  K-Means Clustering
+- Fuzzy C-Means Clustering plugins
+- Spatial Fuzzy C-Means Clustering
+</code></pre>
+
+<h1>
+<a id="plugin-description" class="anchor" href="#plugin-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plugin Description</h1>
+
+<p>This is a set of ImageJ plugins for color image segmentation. The set features four plugins:</p>
+
+<ul>
+<li>The original K-Means plugin from Jarek Sacha's IJ Plugin Toolkit (that you can also find <a href="http://ij-plugins.sourceforge.net/plugins/clustering/">here</a>)</li>
+<li>A refactored version of the original K-Means plugin providing color space selection (RGB, XYZ, L<em>a</em>b*, HSB), a simpler initialization criterion and a few more visualization modes</li>
+<li>A Fuzzy C-Means variant introducing another initialization criterion plus a new visualization mode</li>
+<li>A Spatial version of the Fuzzy C-Means algorithm that considers, for each pixel, a window containing the neighbor pixels in order to compute the membership function</li>
+</ul>
+
+<p>Features</p>
+
+<hr>
+
+<h2>
+<a id="color-space-conversion" class="anchor" href="#color-space-conversion" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Color space conversion</h2>
+
+<p>Color images can be converted into four different color spaces (considering RGB) leading to differently clustered images:</p>
+
+<ul>
+<li>XYZ a standardized color space, similar to RGB but with less correlated components</li>
+<li>L<em>a</em>b* a perceptional uniform color space that provides human predictable segmentation results</li>
+<li>HSB similar to L<em>a</em>b* for its purpose of giving a more human readable color representation, but differs in the representation of the luminance component and consequently of the chroma</li>
+</ul>
+
+<h2>
+<a id="visualization-modes" class="anchor" href="#visualization-modes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Visualization modes</h2>
+
+<ul>
+<li>Cluster Centroid Color each cluster has been assigned its centroid color (in case of color conversion the color space is converted back to RGB)</li>
+<li>Gray Scale each pixel is labelled with the number of the cluster it belongs to, and the image range is stretched in 0-255</li>
+<li>Random RGB a random RGB color is generated for each cluster, it may be very useful when many clusters share a similar centroid color value</li>
+<li>Binary Stack a stack of binary images is outputted, each of those representing a cluster: a black pixel belongs to the current slice cluster, a white not. It may be useful to extract back the original region with an OR operation</li>
+<li>Fuzzy Stack a stack of gray scaled images is used to show the membership values of each pixel to each cluster, the darker the pixel in a slice, the more the corresponding pixel in the original images belongs (in a fuzzy sense) to the currently selected cluster</li>
+</ul>
+
+<h1>
+<a id="changelog" class="anchor" href="#changelog" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Changelog</h1>
+
+<p>26/12/2010
+    Refactored the K-Means Plugin according to the new design (now the algorithm is much more independent form ImageJ API)</p>
+
+<p>30/12/2010
+    Created a new package from the upcoming Fuzzy C-Means version of the plugin. Started to work on it.</p>
+
+<p>3/01/2011
+    Started to work on the Spatial version of the Fuzzy C-Means algorithm.</p>
+
+<p>15/01/2011
+    Released version 1.0 of the plugin suite with several bugs fixed and a working spatial implementation</p>
+
+<p>5/02/2011
+    Released version 1.1 implementing a way to disable the random seeding</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/arranger1044">arranger1044</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
