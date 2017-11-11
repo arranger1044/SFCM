@@ -39,6 +39,13 @@ Installation
 Just put the jar file (that you can find in the /Releases/ directory of the project) under the /plugins directory of ImageJ and relaunch it. The plugins will appear in the Plugins>Segmentation menu. 
 A micro guide explaining the user interface can be found in the /doc/ directory.
 
+Authors
+=======
+
+  - [Antonio Vergari](https://github.com/arranger1044)
+  - [Francesco Tangari](https://github.com/frankbass3)
+
+
 Changelog
 =========
 
